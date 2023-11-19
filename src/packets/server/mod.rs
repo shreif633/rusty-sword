@@ -6,6 +6,7 @@ pub mod check_hash;
 pub mod authentication_error;
 pub mod list_player_characters;
 pub mod list_player_deleted_characters;
+pub mod player_position;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -15,6 +16,7 @@ pub enum ServerPacket {
     AuthenticationError(self::authentication_error::AuthenticationError),
     ListPlayerCharacters(self::list_player_characters::ListPlayerCharacters),
     ListPlayerDeletedCharacters(self::list_player_deleted_characters::ListPlayerDeletedCharacters),
+    PlayerPosition(self::player_position::PlayerPosition),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -27,6 +29,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::analyze::HEADER => ServerPacket::Analyze(self::analyze::Analyze::from(&mut packet)),
         self::list_player_characters::HEADER => ServerPacket::ListPlayerCharacters(self::list_player_characters::ListPlayerCharacters::from(&mut packet)),
         self::list_player_deleted_characters::HEADER => ServerPacket::ListPlayerDeletedCharacters(self::list_player_deleted_characters::ListPlayerDeletedCharacters::from(&mut packet)),
+        self::player_position::HEADER => ServerPacket::PlayerPosition(self::player_position::PlayerPosition::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {
