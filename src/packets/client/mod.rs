@@ -15,7 +15,6 @@ pub enum ClientPacket {
 pub fn deserialize(buffer: &[u8]) -> ClientPacket {
     let mut packet = Packet::new(buffer);
     let header = packet.get_header();
-    println!("[received] {:?}", packet);
     match header {
         self::server_select::HEADER => ClientPacket::ServerSelect(self::server_select::ServerSelect::from(&mut packet)),
         self::authenticate::HEADER => ClientPacket::Authenticate(self::authenticate::Authenticate::from(&mut packet)),
@@ -26,7 +25,6 @@ pub fn deserialize(buffer: &[u8]) -> ClientPacket {
 
 impl ClientPacket {
     pub async fn handle(&self, world: &mut WorldLock, user_id: u32) {
-        println!("HANDLE {:?}", self);
         match self {
             ClientPacket::ServerSelect(packet) => packet.handle(world, user_id).await,
             ClientPacket::Authenticate(packet) => packet.handle(world, user_id).await,

@@ -39,7 +39,7 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
                 }
             }
             println!("ended client reader");
-        }).await;
+        });
 
         let _ = tokio::spawn(async move {
             let mut buffer = [0; 10024];
@@ -70,6 +70,6 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
                 }
             }
             println!("ended server reader");
-        }).await;
+        });
     }
 }

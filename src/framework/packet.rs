@@ -18,7 +18,7 @@ impl Packet {
     }
 
     pub async fn handle(&self, user_id: u32) {
-        println!("unknown packet {:?} for user {}", self, user_id);
+        println!("[unknown][{}] {:?}", user_id, self);
     }
 }
 
