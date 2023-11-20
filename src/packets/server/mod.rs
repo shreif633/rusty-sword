@@ -17,6 +17,7 @@ pub mod player_extra_intelligence;
 pub mod player_extra_wisdom;
 pub mod player_extra_agility;
 pub mod guild_members;
+pub mod skill_prepare;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -37,6 +38,7 @@ pub enum ServerPacket {
     PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdom),
     PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgility),
     GuildMembers(self::guild_members::GuildMembers),
+    SkillPrepare(self::skill_prepare::SkillPrepare),
     Unknown(crate::framework::packet::Packet),
 }
 
