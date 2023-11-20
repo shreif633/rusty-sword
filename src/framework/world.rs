@@ -1,7 +1,10 @@
 use std::{sync::{Arc, RwLock}, collections::HashMap};
+use async_trait::async_trait;
 use tokio::sync::mpsc::Sender;
 
 use crate::framework::user::{User, UserLock};
+
+use super::{packet::Packet, user::UserManager};
 
 #[derive(Debug)]
 pub struct World {
@@ -11,12 +14,17 @@ pub struct World {
 
 pub type WorldLock = Arc<RwLock<World>>;
 
+#[async_trait]
 pub trait WorldManager {
     fn default() -> Self;
     fn insert_user(&self, writer: Sender<Vec<u8>>) -> u32;
     fn get_user_lock_by_id(&self, player_id: u32) -> Option<UserLock>;
+    async fn send(&self, packet: &mut Packet);
+    fn get_other_users_ids_around_id(&self, player_id: u32) -> Vec<u32>;
+    fn get_users_ids_around_id(&self, player_id: u32) -> Vec<u32>;
 }
 
+#[async_trait]
 impl WorldManager for WorldLock {
 
     fn default() -> Self {
@@ -45,6 +53,32 @@ impl WorldManager for WorldLock {
         let world = self.read().unwrap();
         let players = world.players.read().unwrap();
         players.get(&player_id).cloned()
+    }
+
+    async fn send(&self, packet: &mut Packet) {
+        let ids = {
+            let world = self.read().unwrap();
+            let players = world.players.write().unwrap();
+            players.clone().into_keys().collect::<Vec<u32>>()
+        };
+        for id in ids {
+            let user = self.get_user_lock_by_id(id).unwrap();
+            user.send(packet).await;
+        }
+    }
+
+    fn get_other_users_ids_around_id(&self, player_id: u32) -> Vec<u32> {
+        let world = self.read().unwrap();
+        let players = world.players.write().unwrap();
+        let mut ids = players.clone().keys().copied().collect::<Vec<u32>>();
+        ids.retain(|id| *id != player_id);
+        ids
+    }
+
+    fn get_users_ids_around_id(&self, player_id: u32) -> Vec<u32> {
+        let world = self.read().unwrap();
+        let players = world.players.write().unwrap();
+        players.clone().keys().copied().collect::<Vec<u32>>()
     }
 
 }

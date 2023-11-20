@@ -5,9 +5,9 @@ pub const HEADER: u8 = 50;
 #[derive(Debug)]
 #[repr(u8)]
 pub enum PlayerClass {
-    Knight = 128,
-    Mage = 129,
-    Archer = 130,
+    Knight = 0,
+    Mage = 1,
+    Archer = 2,
 }
 
 #[derive(Debug)]
@@ -15,6 +15,7 @@ pub struct PlayerAppear {
     pub player_id: u32,
     pub name: String,
     pub class: PlayerClass,
+    pub is_current_player: bool,
     pub x: u32,
     pub y: u32,
     pub z: u32,
@@ -37,10 +38,13 @@ impl From<&mut Packet> for PlayerAppear {
         let player_id = packet.get_u32();
         let name = packet.get_string();
         let class = packet.get_u8();
-        let class = match class {
-            128 => PlayerClass::Knight,
-            129 => PlayerClass::Mage,
-            _ => PlayerClass::Archer,
+        let (class, is_current_player) = match class {
+            0 => (PlayerClass::Knight, false),
+            1 => (PlayerClass::Mage, false),
+            2 => (PlayerClass::Archer, false),
+            128 => (PlayerClass::Knight, true),
+            129 => (PlayerClass::Mage, true),
+            _ => (PlayerClass::Archer, true)
         };
         let x = packet.get_u32();
         let y = packet.get_u32();
@@ -57,7 +61,7 @@ impl From<&mut Packet> for PlayerAppear {
         let face = packet.get_u8();
         let hair = packet.get_u8();
         let unknown3 = packet.get_buffer(54);
-        PlayerAppear { player_id, name, x, y, z, unknown1, helmet_index, chest_index, shorts_index, gloves_index, boots_index, unknown2, face, hair, unknown3, weapon_index, shield_index, class }
+        PlayerAppear { player_id, name, x, y, z, unknown1, helmet_index, chest_index, shorts_index, gloves_index, boots_index, unknown2, face, hair, unknown3, weapon_index, shield_index, class, is_current_player }
     }
 }
 
@@ -66,11 +70,19 @@ impl From<&PlayerAppear> for Packet {
         let mut packet = Packet::from(HEADER);
         packet.write_u32(val.player_id);
         packet.write_string(&val.name);
-        match val.class {
-            PlayerClass::Knight => packet.write_u8(128),
-            PlayerClass::Mage => packet.write_u8(129),
-            PlayerClass::Archer => packet.write_u8(130),
-        };
+        if val.is_current_player {
+            match val.class {
+                PlayerClass::Knight => packet.write_u8(128),
+                PlayerClass::Mage => packet.write_u8(129),
+                PlayerClass::Archer => packet.write_u8(130),
+            };
+        } else {
+            match val.class {
+                PlayerClass::Knight => packet.write_u8(0),
+                PlayerClass::Mage => packet.write_u8(1),
+                PlayerClass::Archer => packet.write_u8(2),
+            };
+        }
         packet.write_u32(val.x);
         packet.write_u32(val.y);
         packet.write_u32(val.z);

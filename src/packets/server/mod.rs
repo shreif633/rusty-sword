@@ -20,6 +20,8 @@ pub mod guild_members;
 pub mod skill_prepare;
 pub mod skill_execute;
 pub mod chat_message;
+pub mod player_walk;
+pub mod player_stop_walking;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -43,6 +45,8 @@ pub enum ServerPacket {
     SkillPrepare(self::skill_prepare::SkillPrepare),
     SkillExecute(self::skill_execute::SkillExecute),
     ChatMessage(self::chat_message::ChatMessage),
+    PlayerWalk(self::player_walk::PlayerWalk),
+    PlayerStopWalking(self::player_stop_walking::PlayerStopWalking),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -63,6 +67,8 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::skill_prepare::HEADER => ServerPacket::SkillPrepare(self::skill_prepare::SkillPrepare::from(&mut packet)),
         self::skill_execute::HEADER => ServerPacket::SkillExecute(self::skill_execute::SkillExecute::from(&mut packet)),
         self::chat_message::HEADER => ServerPacket::ChatMessage(self::chat_message::ChatMessage::from(&mut packet)),
+        self::player_walk::HEADER => ServerPacket::PlayerWalk(self::player_walk::PlayerWalk::from(&mut packet)),
+        self::player_stop_walking::HEADER => ServerPacket::PlayerStopWalking(self::player_stop_walking::PlayerStopWalking::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

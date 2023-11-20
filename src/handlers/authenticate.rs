@@ -17,7 +17,7 @@ impl HandlePacket for Authenticate {
             let items_indexes: Vec<u16> = vec![261, 262, 263, 264, 265, 338, 781, 4336, 5007, 5017];
             let character = PlayerCharacter { 
                 id: user_id, 
-                name: "Hermit".to_owned(), 
+                name: format!("Hermit{}", user_id).into(), 
                 class: 1, 
                 specialty: 7, 
                 level: 60, 

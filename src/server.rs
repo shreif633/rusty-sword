@@ -3,7 +3,7 @@ use crate::framework::packet_queue::PacketQueue;
 use crate::framework::world::{WorldLock, WorldManager};
 
 pub async fn start(address: &str) -> tokio::io::Result<()> {
-    let mut listener = TcpListener::bind(address).await?;
+    let listener = TcpListener::bind(address).await?;
     let world = WorldLock::default();
 
     loop {
