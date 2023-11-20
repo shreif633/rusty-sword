@@ -18,6 +18,7 @@ pub mod player_extra_wisdom;
 pub mod player_extra_agility;
 pub mod guild_members;
 pub mod skill_prepare;
+pub mod skill_execute;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -39,6 +40,7 @@ pub enum ServerPacket {
     PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgility),
     GuildMembers(self::guild_members::GuildMembers),
     SkillPrepare(self::skill_prepare::SkillPrepare),
+    SkillExecute(self::skill_execute::SkillExecute),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -56,6 +58,8 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::player_skills::HEADER => ServerPacket::PlayerSkills(self::player_skills::PlayerSkills::from(&mut packet)),
         self::inventory::HEADER => ServerPacket::Inventory(self::inventory::Inventory::from(&mut packet)),
         self::player_information::HEADER => ServerPacket::PlayerInformation(self::player_information::PlayerInformation::from(&mut packet)),
+        self::skill_prepare::HEADER => ServerPacket::SkillPrepare(self::skill_prepare::SkillPrepare::from(&mut packet)),
+        self::skill_execute::HEADER => ServerPacket::SkillExecute(self::skill_execute::SkillExecute::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

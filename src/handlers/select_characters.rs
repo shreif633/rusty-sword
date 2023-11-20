@@ -31,13 +31,13 @@ impl HandlePacket for SelectCharacter {
             y: 242655, 
             z: 19630, 
             unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
-            weapon_index: 0, 
+            weapon_index: 781, 
             shield_index: 0, 
             helmet_index: 262, 
-            chest_index: 0, 
-            shorts_index: 0, 
-            gloves_index: 0, 
-            boots_index: 0, 
+            chest_index: 261, 
+            shorts_index: 265, 
+            gloves_index: 263, 
+            boots_index: 264, 
             unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
             face: 6, 
             hair: 6, 
@@ -55,6 +55,7 @@ impl HandlePacket for SelectCharacter {
         let inventory = Inventory { 
             items: vec![
                 Item { index: 262, id: -2147482791, prefix: 85, info: 2097161, quantity: 1, maximum_endurance: 14, current_endurance: 14, unknown1: 0, physical_attack_talisman: 0, magical_attack_talisman: 0, unknown2: vec![0], talisman_of_accuracy: 0, unknown3: vec![0], talisman_of_defence: 0, unknown4: vec![57], upgrade_level: 0, upgrade_rate: 0, seconds_remaining: 0, unknown5: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                Item { index: 781, id: -2147482787, prefix: 83, info: 1081345, quantity: 1, maximum_endurance: 30, current_endurance: 28, unknown1: 0, physical_attack_talisman: 7, magical_attack_talisman: 10, unknown2: vec![0], talisman_of_accuracy: 11, unknown3: vec![0], talisman_of_defence: 39, unknown4: vec![57], upgrade_level: 10, upgrade_rate: 1, seconds_remaining: 0, unknown5: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
             ]
         };
         current_user_lock.send(&mut (&inventory).into()).await;
