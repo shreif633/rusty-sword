@@ -3,6 +3,7 @@ use crate::framework::user::UserManager;
 use crate::framework::world::{WorldLock, WorldManager};
 use crate::framework::packet::HandlePacket;
 use crate::packets::client::select_character::SelectCharacter;
+use crate::packets::server::guild_members::{GuildMembers, Member, Position};
 use crate::packets::server::inventory::{Inventory, Item};
 use crate::packets::server::player_appear::{PlayerAppear, PlayerClass};
 use crate::packets::server::player_extra_agility::{self, PlayerExtraAgility};
@@ -137,5 +138,23 @@ impl HandlePacket for SelectCharacter {
             maximum_physical_attack: 212
         };
         current_user_lock.send(&mut (&player_extra_agility).into()).await;
+
+        let guild_members = GuildMembers { 
+            unknown: vec![36, 2, 0, 0], 
+            guild_name: "KalSaga".to_string(), 
+            leader_position_name: "Leader".to_string(), 
+            subleader_position_name: "SubLeader".to_string(), 
+            manager_position_name: "Manager".to_string(), 
+            chief_position_name: "Chief".to_string(), 
+            regular_member_position_name: "Member".to_string(), 
+            temporary_member_position_name: "TempMember".to_string(), 
+            members: vec![
+                Member { name: "Mortaro".to_string(), position: Position::Leader, level: 0 }, 
+                Member { name: "Hermit".to_string(), position: Position::RegularMember, level: 60 }, 
+                Member { name: "CJB".to_string(), position: Position::TemporaryMember, level: 0 }, 
+                Member { name: "Comma".to_string(), position: Position::SubLeader, level: 0 }
+            ] 
+        };
+        current_user_lock.send(&mut (&guild_members).into()).await;
     }
 }

@@ -16,6 +16,7 @@ pub mod player_extra_strength;
 pub mod player_extra_intelligence;
 pub mod player_extra_wisdom;
 pub mod player_extra_agility;
+pub mod guild_members;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -35,6 +36,7 @@ pub enum ServerPacket {
     PlayerExtraIntelligence(self::player_extra_intelligence::PlayerExtraIntelligence),
     PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdom),
     PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgility),
+    GuildMembers(self::guild_members::GuildMembers),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -67,6 +69,13 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
                 self::player_extra_intelligence::SUB_HEADER => ServerPacket::PlayerExtraIntelligence(self::player_extra_intelligence::PlayerExtraIntelligence::from(&mut packet)),
                 self::player_extra_wisdom::SUB_HEADER => ServerPacket::PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdom::from(&mut packet)),
                 self::player_extra_agility::SUB_HEADER => ServerPacket::PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgility::from(&mut packet)),
+                _ => ServerPacket::Unknown(packet)
+            }
+        },
+        self::guild_members::HEADER => {
+            let sub_header = packet.get_u8();
+            match sub_header {
+                self::guild_members::SUB_HEADER => ServerPacket::GuildMembers(self::guild_members::GuildMembers::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         }
