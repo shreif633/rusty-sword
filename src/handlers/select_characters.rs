@@ -5,6 +5,11 @@ use crate::framework::packet::HandlePacket;
 use crate::packets::client::select_character::SelectCharacter;
 use crate::packets::server::inventory::{Inventory, Item};
 use crate::packets::server::player_appear::{PlayerAppear, PlayerClass};
+use crate::packets::server::player_extra_agility::{self, PlayerExtraAgility};
+use crate::packets::server::player_extra_health::{self, PlayerExtraHealth};
+use crate::packets::server::player_extra_intelligence::{self, PlayerExtraIntelligence};
+use crate::packets::server::player_extra_strength::{self, PlayerExtraStrength};
+use crate::packets::server::player_extra_wisdom::{self, PlayerExtraWisdom};
 use crate::packets::server::player_information::PlayerInformation;
 use crate::packets::server::player_position::PlayerPosition;
 use crate::packets::server::player_skills::{PlayerSkills, Skill};
@@ -86,5 +91,51 @@ impl HandlePacket for SelectCharacter {
             rage: 617142 
         };
         current_user_lock.send(&mut (&player_information).into()).await;
+
+        let player_extra_health = PlayerExtraHealth { 
+            extra_health: 11, 
+            current_health_points: 4077, 
+            maximum_health_points: 6077, 
+            non_elemental_resistence: 25 
+        };
+        current_user_lock.send(&mut (&player_extra_health).into()).await;
+
+        let player_extra_strength = PlayerExtraStrength { 
+            extra_strength: 10, 
+            on_target_point: 80, 
+            minimum_physical_attack: 160, 
+            maximum_physical_attack: 212 
+        };
+        current_user_lock.send(&mut (&player_extra_strength).into()).await;
+
+        let player_extra_intelligence = PlayerExtraIntelligence { 
+            extra_intelligence: 12, 
+            minimum_magical_attack: 229, 
+            maximum_magical_attack: 371, 
+            fire_resistence: 11, 
+            ice_resistence: 21, 
+            lighning_resistence: 31 
+        };
+        current_user_lock.send(&mut (&player_extra_intelligence).into()).await;
+
+        let player_extra_wisdom = PlayerExtraWisdom { 
+            extra_wisdom: 13, 
+            current_magic_points: 1053, 
+            maximum_magic_points: 1261, 
+            minimum_magical_attack: 229, 
+            maximum_magical_attack: 371, 
+            curse_resistence: 17 
+        };
+        current_user_lock.send(&mut (&player_extra_wisdom).into()).await;
+
+        let player_extra_agility = PlayerExtraAgility {
+            extra_agility: 14, 
+            on_target_point: 80, 
+            evasion: 83, 
+            unknown_evasion_copy: 83, 
+            minimum_physical_attack: 160, 
+            maximum_physical_attack: 212
+        };
+        current_user_lock.send(&mut (&player_extra_agility).into()).await;
     }
 }

@@ -11,6 +11,11 @@ pub mod player_appear;
 pub mod player_skills;
 pub mod inventory;
 pub mod player_information;
+pub mod player_extra_health;
+pub mod player_extra_strength;
+pub mod player_extra_intelligence;
+pub mod player_extra_wisdom;
+pub mod player_extra_agility;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -25,6 +30,11 @@ pub enum ServerPacket {
     PlayerSkills(self::player_skills::PlayerSkills),
     Inventory(self::inventory::Inventory),
     PlayerInformation(self::player_information::PlayerInformation),
+    PlayerExtraHealth(self::player_extra_health::PlayerExtraHealth),
+    PlayerExtraStrength(self::player_extra_strength::PlayerExtraStrength),
+    PlayerExtraIntelligence(self::player_extra_intelligence::PlayerExtraIntelligence),
+    PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdom),
+    PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgility),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -46,6 +56,17 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
             let sub_header = packet.get_u32();
             match sub_header {
                 self::check_hash::SUB_HEADER => ServerPacket::CheckHash(self::check_hash::CheckHash::from(&mut packet)),
+                _ => ServerPacket::Unknown(packet)
+            }
+        },
+        self::player_extra_health::HEADER => {
+            let sub_header = packet.get_u8();
+            match sub_header {
+                self::player_extra_health::SUB_HEADER => ServerPacket::PlayerExtraHealth(self::player_extra_health::PlayerExtraHealth::from(&mut packet)),
+                self::player_extra_strength::SUB_HEADER => ServerPacket::PlayerExtraStrength(self::player_extra_strength::PlayerExtraStrength::from(&mut packet)),
+                self::player_extra_intelligence::SUB_HEADER => ServerPacket::PlayerExtraIntelligence(self::player_extra_intelligence::PlayerExtraIntelligence::from(&mut packet)),
+                self::player_extra_wisdom::SUB_HEADER => ServerPacket::PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdom::from(&mut packet)),
+                self::player_extra_agility::SUB_HEADER => ServerPacket::PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgility::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         }
