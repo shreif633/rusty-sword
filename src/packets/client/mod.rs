@@ -7,6 +7,7 @@ pub mod skill_prepare;
 pub mod chat_message;
 pub mod player_walk;
 pub mod player_stop_walking;
+pub mod emote;
 
 #[derive(Debug)]
 pub enum ClientPacket {
@@ -17,6 +18,7 @@ pub enum ClientPacket {
     ChatMessage(self::chat_message::ChatMessage),
     PlayerWalk(self::player_walk::PlayerWalk),
     PlayerStopWalking(self::player_stop_walking::PlayerStopWalking),
+    Emote(self::emote::Emote),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -31,6 +33,7 @@ pub fn deserialize(buffer: &[u8]) -> ClientPacket {
         self::chat_message::HEADER => ClientPacket::ChatMessage(self::chat_message::ChatMessage::from(&mut packet)),
         self::player_walk::HEADER => ClientPacket::PlayerWalk(self::player_walk::PlayerWalk::from(&mut packet)),
         self::player_stop_walking::HEADER => ClientPacket::PlayerStopWalking(self::player_stop_walking::PlayerStopWalking::from(&mut packet)),
+        self::emote::HEADER => ClientPacket::Emote(self::emote::Emote::from(&mut packet)),
         _ => ClientPacket::Unknown(packet)
     }
 }
@@ -45,6 +48,7 @@ impl ClientPacket {
             ClientPacket::ChatMessage(packet) => packet.handle(world, user_id).await,
             ClientPacket::PlayerWalk(packet) => packet.handle(world, user_id).await,
             ClientPacket::PlayerStopWalking(packet) => packet.handle(world, user_id).await,
+            ClientPacket::Emote(packet) => packet.handle(world, user_id).await,
             ClientPacket::Unknown(packet) => packet.handle(user_id).await
         }
     }

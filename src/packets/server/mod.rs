@@ -22,6 +22,7 @@ pub mod skill_execute;
 pub mod chat_message;
 pub mod player_walk;
 pub mod player_stop_walking;
+pub mod emote;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -47,6 +48,7 @@ pub enum ServerPacket {
     ChatMessage(self::chat_message::ChatMessage),
     PlayerWalk(self::player_walk::PlayerWalk),
     PlayerStopWalking(self::player_stop_walking::PlayerStopWalking),
+    Emote(self::emote::Emote),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -69,6 +71,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::chat_message::HEADER => ServerPacket::ChatMessage(self::chat_message::ChatMessage::from(&mut packet)),
         self::player_walk::HEADER => ServerPacket::PlayerWalk(self::player_walk::PlayerWalk::from(&mut packet)),
         self::player_stop_walking::HEADER => ServerPacket::PlayerStopWalking(self::player_stop_walking::PlayerStopWalking::from(&mut packet)),
+        self::emote::HEADER => ServerPacket::Emote(self::emote::Emote::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

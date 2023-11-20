@@ -5,3 +5,4 @@ pub mod skill_prepare;
 pub mod chat_message;
 pub mod player_walk;
 pub mod player_stop_walking;
+pub mod emote;
