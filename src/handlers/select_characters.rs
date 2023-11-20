@@ -24,7 +24,7 @@ impl HandlePacket for SelectCharacter {
         current_user_lock.send(&mut (&position).into()).await;
 
         let player_appear = PlayerAppear { 
-            player_id: 573, 
+            player_id: user_id, 
             name: "Hermit".into(), 
             class: PlayerClass::Mage, 
             x: 267701, 

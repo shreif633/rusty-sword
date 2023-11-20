@@ -9,7 +9,7 @@ edition = "2021"
 async-trait = "0.1.74"
 clap = { version = "4.4.8", features = ["derive"] }
 dashmap = "5.5.3"
-tokio = { version = "0.2.4", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 
 [env]
 RUST_BACKTRACE = "1"
