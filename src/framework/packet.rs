@@ -18,7 +18,11 @@ impl Packet {
     }
 
     pub async fn handle(&self, user_id: u32) {
-        println!("[unknown][{}] {:?}", user_id, self);
+        if let Some(header) = self.buffer.get(2) {
+            if *header != 253 {
+                println!("[unknown][{}] {:?}", user_id, self);
+            }
+        }
     }
 }
 
@@ -127,6 +131,7 @@ impl Packet {
         i32::from_le_bytes(slice.try_into().unwrap())
     }
 
+    #[allow(dead_code)]
     pub fn get_i64(&mut self) -> i64 {
         let i = self.cursor as usize;
         let slice = &self.buffer[i..i + 8];

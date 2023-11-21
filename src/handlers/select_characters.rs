@@ -1,16 +1,16 @@
 use async_trait::async_trait;
-use crate::framework::user::UserManager;
+use crate::framework::player::PlayerManager;
 use crate::framework::world::{WorldLock, WorldManager};
 use crate::framework::packet::HandlePacket;
 use crate::packets::client::select_character::SelectCharacter;
 use crate::packets::server::guild_members::{GuildMembers, Member, Position};
 use crate::packets::server::inventory::{Inventory, Item};
 use crate::packets::server::player_appear::{PlayerAppear, PlayerClass};
-use crate::packets::server::player_extra_agility::{self, PlayerExtraAgility};
-use crate::packets::server::player_extra_health::{self, PlayerExtraHealth};
-use crate::packets::server::player_extra_intelligence::{self, PlayerExtraIntelligence};
-use crate::packets::server::player_extra_strength::{self, PlayerExtraStrength};
-use crate::packets::server::player_extra_wisdom::{self, PlayerExtraWisdom};
+use crate::packets::server::player_extra_agility::PlayerExtraAgility;
+use crate::packets::server::player_extra_health::PlayerExtraHealth;
+use crate::packets::server::player_extra_intelligence::PlayerExtraIntelligence;
+use crate::packets::server::player_extra_strength::PlayerExtraStrength;
+use crate::packets::server::player_extra_wisdom::PlayerExtraWisdom;
 use crate::packets::server::player_information::PlayerInformation;
 use crate::packets::server::player_position::PlayerPosition;
 use crate::packets::server::player_skills::{PlayerSkills, Skill};
@@ -18,93 +18,97 @@ use crate::packets::server::player_skills::{PlayerSkills, Skill};
 #[async_trait]
 impl HandlePacket for SelectCharacter {
     async fn handle(&self, world: &mut WorldLock, user_id: u32) {
-        let current_user_lock = world.get_user_lock_by_id(user_id).unwrap();
+        let player = world.create_player(user_id);
 
-        let position = PlayerPosition { unknown: vec![47, 1], x: 267701, y: 242655 };
-        current_user_lock.send(&mut (&position).into()).await;
+        {
+            let mut player = player.write().unwrap();
+            player.name = format!("Hermit{}", user_id);
 
-        let player_appear = PlayerAppear { 
-            player_id: user_id, 
-            name: format!("Hermit{}", user_id).into(), 
-            class: PlayerClass::Mage, 
-            is_current_player: true,
-            x: 267701, 
-            y: 242655, 
-            z: 19630, 
-            unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
-            weapon_index: 781, 
-            shield_index: 0, 
-            helmet_index: 262, 
-            chest_index: 261, 
-            shorts_index: 265, 
-            gloves_index: 263, 
-            boots_index: 264, 
-            unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-            face: 6, 
-            hair: 6, 
-            unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
-        };
-        current_user_lock.send(&mut (&player_appear).into()).await;
+            player.x = 267701;
+            player.y = 242655;
+            player.z = 19630;
 
-        { 
-            let other_users_ids = world.get_users_ids_around_id(user_id);
-            for other_id in other_users_ids {
-                let player_appear = PlayerAppear { 
-                    player_id: user_id, 
-                    name: format!("Hermit{}", user_id).into(), 
-                    class: PlayerClass::Mage, 
-                    is_current_player: false,
-                    x: 267701, 
-                    y: 242655, 
-                    z: 19630, 
-                    unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
-                    weapon_index: 781, 
-                    shield_index: 0, 
-                    helmet_index: 262, 
-                    chest_index: 261, 
-                    shorts_index: 265, 
-                    gloves_index: 263, 
-                    boots_index: 264, 
-                    unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                    face: 6, 
-                    hair: 6, 
-                    unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
-                };
-                let other_user_lock = world.get_user_lock_by_id(other_id).unwrap();
-                other_user_lock.send(&mut (&player_appear).into()).await;
+            player.face = 6;
+            player.hair = 6;
 
-                let player_appear = PlayerAppear { 
-                    player_id: other_id, 
-                    name: format!("Hermit{}", other_id).into(), 
-                    class: PlayerClass::Mage, 
-                    is_current_player: false,
-                    x: 267701, 
-                    y: 242655, 
-                    z: 19630, 
-                    unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
-                    weapon_index: 781, 
-                    shield_index: 0, 
-                    helmet_index: 262, 
-                    chest_index: 261, 
-                    shorts_index: 265, 
-                    gloves_index: 263, 
-                    boots_index: 264, 
-                    unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                    face: 6, 
-                    hair: 6, 
-                    unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
-                };
-                current_user_lock.send(&mut (&player_appear).into()).await;
-            }
+            player.weapon_index = 781; 
+            player.shield_index = 0;
+            player.helmet_index = 262; 
+            player.chest_index = 261; 
+            player.shorts_index = 265; 
+            player.gloves_index = 263; 
+            player.boots_index = 264; 
         }
-        // world.send(&mut (&player_appear).into()).await;
+
+        let position = { 
+            let player = player.read().unwrap();
+            PlayerPosition { unknown: vec![47, 1], x: player.x, y: player.y }
+        };
+        player.send(&mut (&position).into()).await;
+
+        let mut player_appear = {
+            let player = player.read().unwrap();
+            PlayerAppear { 
+                player_id: player.id, 
+                name: player.name.clone(), 
+                class: PlayerClass::Mage, 
+                is_current_player: true,
+                x: player.x, 
+                y: player.y, 
+                z: player.z, 
+                unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
+                weapon_index: player.weapon_index, 
+                shield_index: player.shield_index, 
+                helmet_index: player.helmet_index, 
+                chest_index: player.chest_index, 
+                shorts_index: player.shorts_index, 
+                gloves_index: player.gloves_index, 
+                boots_index: player.boots_index, 
+                unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                face: player.face, 
+                hair: player.hair, 
+                unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+            }
+        };
+        player.send(&mut (&player_appear).into()).await;
+
+        for other_player in world.get_other_players_in_sight(user_id) {
+            player_appear.is_current_player = false;
+            other_player.send(&mut (&player_appear).into()).await;
+
+            let other_player_appear = {
+                let other_player = other_player.read().unwrap();
+                PlayerAppear { 
+                    player_id: other_player.id, 
+                    name: other_player.name.clone(), 
+                    class: PlayerClass::Mage, 
+                    is_current_player: false,
+                    x: other_player.x, 
+                    y: other_player.y, 
+                    z: other_player.z, 
+                    unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
+                    weapon_index: other_player.weapon_index, 
+                    shield_index: other_player.shield_index, 
+                    helmet_index: other_player.helmet_index, 
+                    chest_index: other_player.chest_index, 
+                    shorts_index: other_player.shorts_index, 
+                    gloves_index: other_player.gloves_index, 
+                    boots_index: other_player.boots_index, 
+                    unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                    face: other_player.face, 
+                    hair: other_player.hair, 
+                    unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+                }
+            };
+            player.send(&mut (&other_player_appear).into()).await;
+        }
 
         let player_skills = PlayerSkills {
             skills: vec![
                 Skill { index: 0, grade: 1 }, Skill { index: 1, grade: 1 }, Skill { index: 11, grade: 2 }, Skill { index: 4, grade: 10 }, Skill { index: 5, grade: 1 }, Skill { index: 17, grade: 1 }, Skill { index: 18, grade: 1 }, Skill { index: 19, grade: 1 }, Skill { index: 20, grade: 1 }, Skill { index: 21, grade: 1 }, Skill { index: 3, grade: 20 }, Skill { index: 23, grade: 10 }, Skill { index: 15, grade: 3 }, Skill { index: 13, grade: 5 }, Skill { index: 24, grade: 5 }, Skill { index: 30, grade: 3 }, Skill { index: 82, grade: 1 }, Skill { index: 32, grade: 2 }, Skill { index: 44, grade: 1 }, Skill { index: 31, grade: 2 }, Skill { index: 38, grade: 2 }, Skill { index: 9, grade: 5 }, Skill { index: 27, grade: 1 }, Skill { index: 37, grade: 1 }, Skill { index: 8, grade: 3 }, Skill { index: 10, grade: 10 }, Skill { index: 16, grade: 1 }, Skill { index: 29, grade: 1 }, Skill { index: 22, grade: 5 }, Skill { index: 26, grade: 3 }
             ]
         };
-        current_user_lock.send(&mut (&player_skills).into()).await;
+        player.send(&mut (&player_skills).into()).await;
 
         let inventory = Inventory { 
             items: vec![
@@ -112,7 +116,7 @@ impl HandlePacket for SelectCharacter {
                 Item { index: 781, id: -2147482787, prefix: 83, info: 1081345, quantity: 1, maximum_endurance: 30, current_endurance: 28, unknown1: 0, physical_attack_talisman: 7, magical_attack_talisman: 10, unknown2: vec![0], talisman_of_accuracy: 11, unknown3: vec![0], talisman_of_defence: 39, unknown4: vec![57], upgrade_level: 10, upgrade_rate: 1, seconds_remaining: 0, unknown5: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
             ]
         };
-        current_user_lock.send(&mut (&inventory).into()).await;
+        player.send(&mut (&inventory).into()).await;
 
         let player_information = PlayerInformation { 
             specialization: 7, 
@@ -146,7 +150,7 @@ impl HandlePacket for SelectCharacter {
             non_elemental_resistence: 25, 
             rage: 617142 
         };
-        current_user_lock.send(&mut (&player_information).into()).await;
+        player.send(&mut (&player_information).into()).await;
 
         let player_extra_health = PlayerExtraHealth { 
             extra_health: 11, 
@@ -154,7 +158,7 @@ impl HandlePacket for SelectCharacter {
             maximum_health_points: 6077, 
             non_elemental_resistence: 25 
         };
-        current_user_lock.send(&mut (&player_extra_health).into()).await;
+        player.send(&mut (&player_extra_health).into()).await;
 
         let player_extra_strength = PlayerExtraStrength { 
             extra_strength: 10, 
@@ -162,7 +166,7 @@ impl HandlePacket for SelectCharacter {
             minimum_physical_attack: 160, 
             maximum_physical_attack: 212 
         };
-        current_user_lock.send(&mut (&player_extra_strength).into()).await;
+        player.send(&mut (&player_extra_strength).into()).await;
 
         let player_extra_intelligence = PlayerExtraIntelligence { 
             extra_intelligence: 12, 
@@ -172,7 +176,7 @@ impl HandlePacket for SelectCharacter {
             ice_resistence: 21, 
             lighning_resistence: 31 
         };
-        current_user_lock.send(&mut (&player_extra_intelligence).into()).await;
+        player.send(&mut (&player_extra_intelligence).into()).await;
 
         let player_extra_wisdom = PlayerExtraWisdom { 
             extra_wisdom: 13, 
@@ -182,7 +186,7 @@ impl HandlePacket for SelectCharacter {
             maximum_magical_attack: 371, 
             curse_resistence: 17 
         };
-        current_user_lock.send(&mut (&player_extra_wisdom).into()).await;
+        player.send(&mut (&player_extra_wisdom).into()).await;
 
         let player_extra_agility = PlayerExtraAgility {
             extra_agility: 14, 
@@ -192,7 +196,7 @@ impl HandlePacket for SelectCharacter {
             minimum_physical_attack: 160, 
             maximum_physical_attack: 212
         };
-        current_user_lock.send(&mut (&player_extra_agility).into()).await;
+        player.send(&mut (&player_extra_agility).into()).await;
 
         let guild_members = GuildMembers { 
             unknown: vec![36, 2, 0, 0], 
@@ -210,6 +214,6 @@ impl HandlePacket for SelectCharacter {
                 Member { name: "Comma".to_string(), position: Position::SubLeader, level: 0 }
             ] 
         };
-        current_user_lock.send(&mut (&guild_members).into()).await;
+        player.send(&mut (&guild_members).into()).await;
     }
 }

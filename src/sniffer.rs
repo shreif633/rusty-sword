@@ -2,7 +2,7 @@ use tokio::{net::{TcpListener, TcpStream}, io::{AsyncReadExt, AsyncWriteExt}};
 use crate::{framework::packet_queue::PacketQueue, packets::{client::ClientPacket, server::ServerPacket}};
 
 pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_server_packets: bool, show_client_packets: bool) -> tokio::io::Result<()> {
-    let mut listener = TcpListener::bind(client).await?;
+    let listener = TcpListener::bind(client).await?;
 
     loop {
         let (client, _) = listener.accept().await?;

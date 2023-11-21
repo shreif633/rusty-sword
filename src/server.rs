@@ -11,9 +11,9 @@ pub async fn start(address: &str) -> tokio::io::Result<()> {
         let (mut client_reader, mut client_writer) = client.into_split();
         let (writer, mut reader) = mpsc::channel::<Vec<u8>>(30);
         let mut world = world.clone();
-        let user_id = world.insert_user(writer);
-
+        
         let _ = tokio::spawn(async move {
+            let user_id = world.insert_user(writer);
             let mut buffer = [0; 10024];
             let mut queue = PacketQueue { buffer: vec![] };
             loop {
@@ -32,6 +32,7 @@ pub async fn start(address: &str) -> tokio::io::Result<()> {
                     }
                 }
             }
+            world.remove_user(user_id);
             println!("ended client reader");
         });
 
@@ -39,6 +40,7 @@ pub async fn start(address: &str) -> tokio::io::Result<()> {
             while let Some(packet) = reader.recv().await {
                 let _ = client_writer.write_all(&packet).await;
             }
+            println!("signals ended");
         });
     }
 }

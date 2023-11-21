@@ -4,14 +4,8 @@ use async_trait::async_trait;
 use crate::framework::packet::Packet;
 
 #[derive(Debug)]
-pub struct UserCharacter {
-    pub level: u8,
-}
-
-#[derive(Debug)]
 pub struct User {
     pub id: u32,
-    pub character: Option<UserCharacter>,
     pub writer: Sender<Vec<u8>>
 }
 
@@ -26,7 +20,7 @@ pub trait UserManager {
 impl UserManager for UserLock {
 
     async fn send(&self, packet: &mut Packet) {
-        let mut writer = {
+        let writer = {
             let user = self.read().unwrap();
             user.writer.clone() 
         };

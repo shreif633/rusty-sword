@@ -1,24 +1,45 @@
 use async_trait::async_trait;
 use crate::framework::packet::HandlePacket;
-use crate::framework::user::UserManager;
+use crate::framework::player::PlayerManager;
 use crate::framework::world::{WorldLock, WorldManager};
 use crate::packets::client::player_walk::PlayerWalk;
 
 #[async_trait]
 impl HandlePacket for PlayerWalk {
     async fn handle(&self, world: &mut WorldLock, user_id: u32) {
-        { 
-            let other_users_ids = world.get_other_users_ids_around_id(user_id);
-            for other_id in other_users_ids {
-                let player_walk = crate::packets::server::player_walk::PlayerWalk { 
-                    player_id: user_id, 
-                    delta_x: self.delta_x, 
-                    delta_y: self.delta_y, 
-                    delta_z: self.delta_z 
-                };
-                let other_user_lock = world.get_user_lock_by_id(other_id).unwrap();
-                other_user_lock.send(&mut (&player_walk).into()).await;
+        {
+            let player = world.get_player_by_id(user_id).unwrap();
+            let mut player = player.write().unwrap();
+
+            let delta_x: u32 = self.delta_x.try_into().unwrap();
+            if self.delta_x > 128 { 
+                player.x = player.x - (256 - delta_x);
+            } else { 
+                player.x = player.x + delta_x;
             }
+
+            let delta_y: u32 = self.delta_y.try_into().unwrap();
+            if self.delta_y > 128 { 
+                player.y = player.y - (256 - delta_y);
+            } else { 
+                player.y = player.y + delta_y;
+            }
+
+            let delta_z: u32 = self.delta_z.try_into().unwrap();
+            if self.delta_z > 128 { 
+                player.z = player.z - (256 - delta_z);
+            } else { 
+                player.z = player.z + delta_z;
+            }
+        }
+        let player_walk = crate::packets::server::player_walk::PlayerWalk { 
+            player_id: user_id, 
+            delta_x: self.delta_x, 
+            delta_y: self.delta_y, 
+            delta_z: self.delta_z 
+        };
+        for other_player in world.get_other_players_in_sight(user_id) {
+            other_player.send(&mut (&player_walk).into()).await;
         }
     }
 }
