@@ -1,8 +1,9 @@
 use crate::framework::packet::Packet;
+use bevy::prelude::*;
 
 pub const HEADER: u8 = 146;
 
-#[derive(Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct PlayerStopWalking {
     pub delta_x: u8,
     pub delta_y: u8,

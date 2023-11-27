@@ -1,28 +1,12 @@
-use async_trait::async_trait;
-use crate::framework::world::WorldLock;
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Packet {
     pub buffer: Vec<u8>,
     cursor: u32
 }
 
-#[async_trait]
-pub trait HandlePacket {
-    async fn handle(&self, world: &mut WorldLock, user_id: u32);
-}
-
 impl Packet {
     pub fn new(buffer: &[u8]) -> Self {
         Packet { buffer: buffer.to_vec(), cursor: 0 }
-    }
-
-    pub async fn handle(&self, user_id: u32) {
-        if let Some(header) = self.buffer.get(2) {
-            if *header != 253 {
-                println!("[unknown][{}] {:?}", user_id, self);
-            }
-        }
     }
 }
 

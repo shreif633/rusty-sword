@@ -1,11 +1,12 @@
 use async_trait::async_trait;
-use crate::framework::player::PlayerManager;
+use crate::framework::player::{PlayerManager, PlayerClass};
 use crate::framework::world::{WorldLock, WorldManager};
 use crate::framework::packet::HandlePacket;
+use crate::models::user::User;
 use crate::packets::client::select_character::SelectCharacter;
 use crate::packets::server::guild_members::{GuildMembers, Member, Position};
 use crate::packets::server::inventory::{Inventory, Item};
-use crate::packets::server::player_appear::{PlayerAppear, PlayerClass};
+use crate::packets::server::player_appear::PlayerAppear;
 use crate::packets::server::player_extra_agility::PlayerExtraAgility;
 use crate::packets::server::player_extra_health::PlayerExtraHealth;
 use crate::packets::server::player_extra_intelligence::PlayerExtraIntelligence;
@@ -14,31 +15,73 @@ use crate::packets::server::player_extra_wisdom::PlayerExtraWisdom;
 use crate::packets::server::player_information::PlayerInformation;
 use crate::packets::server::player_position::PlayerPosition;
 use crate::packets::server::player_skills::{PlayerSkills, Skill};
+use sqlx::Row;
 
 #[async_trait]
 impl HandlePacket for SelectCharacter {
-    async fn handle(&self, world: &mut WorldLock, user_id: u32) {
-        let player = world.create_player(user_id);
+    async fn handle(&self, current_user: &mut User) {
+        let player = current_user.select_player(self.character_id);
+        // let player = world.create_player(user_id);
+        
+        // {
+        //     let db = {
+        //         world.get_database().read().unwrap().connection.clone()
+        //     };
 
-        {
-            let mut player = player.write().unwrap();
-            player.name = format!("Hermit{}", user_id);
+        //     let id = {
+        //         let current_user = world.get_user_by_id(user_id).unwrap();
+        //         let current_user = current_user.read().unwrap();
+        //         current_user.id
+        //     };
+        //     let row = sqlx::query("SELECT * FROM players WHERE id = ? AND user_id = ? AND deleted_at IS NULL")
+        //         .bind(self.character_id)
+        //         .bind(id)
+        //         .fetch_one(&db).await;
 
-            player.x = 267701;
-            player.y = 242655;
-            player.z = 19630;
+        //     if row.is_err() {
+        //         return;
+        //     }
 
-            player.face = 6;
-            player.hair = 6;
+        //     let row = row.unwrap();
 
-            player.weapon_index = 781; 
-            player.shield_index = 0;
-            player.helmet_index = 262; 
-            player.chest_index = 261; 
-            player.shorts_index = 265; 
-            player.gloves_index = 263; 
-            player.boots_index = 264; 
-        }
+        //     let mut player = player.write().unwrap();
+        //     player.name = row.try_get("name").unwrap();
+
+        //     player.x = row.try_get("x").unwrap();
+        //     player.y = row.try_get("y").unwrap();
+        //     player.z = row.try_get("z").unwrap();
+
+        //     player.face = row.try_get("face").unwrap();
+        //     player.hair = row.try_get("hair").unwrap();
+
+        //     player.class = match row.try_get("class").unwrap() {
+        //         0 => PlayerClass::Knight,
+        //         1 => PlayerClass::Mage,
+        //         _ => PlayerClass::Archer,
+        //     };
+
+        //     player.weapon_index = row.try_get("weapon_index").unwrap();
+        //     player.shield_index = row.try_get("shield_index").unwrap();
+        //     player.helmet_index = row.try_get("helmet_index").unwrap();
+        //     player.chest_index = row.try_get("chest_index").unwrap();
+        //     player.shorts_index = row.try_get("shorts_index").unwrap();
+        //     player.gloves_index = row.try_get("gloves_index").unwrap();
+        //     player.boots_index = row.try_get("boots_index").unwrap();
+
+        //     player.current_health_points = row.try_get("current_health_points").unwrap();
+        //     player.maximum_health_points = row.try_get("maximum_health_points").unwrap();
+        //     player.current_magic_points = row.try_get("current_magic_points").unwrap();
+        //     player.maximum_magic_points = row.try_get("maximum_magic_points").unwrap();
+
+        //     player.experience = row.try_get("experience").unwrap();
+        //     player.rage = row.try_get("rage").unwrap();
+
+        //     player.base_strength = row.try_get("base_strength").unwrap();
+        //     player.base_health = row.try_get("base_health").unwrap();
+        //     player.base_intelligence = row.try_get("base_intelligence").unwrap();
+        //     player.base_wisdom = row.try_get("base_wisdom").unwrap();
+        //     player.base_agility = row.try_get("base_agility").unwrap();
+        // }
 
         let position = { 
             let player = player.read().unwrap();
@@ -51,7 +94,7 @@ impl HandlePacket for SelectCharacter {
             PlayerAppear { 
                 player_id: player.id, 
                 name: player.name.clone(), 
-                class: PlayerClass::Mage, 
+                class: player.class, 
                 is_current_player: true,
                 x: player.x, 
                 y: player.y, 
@@ -81,7 +124,7 @@ impl HandlePacket for SelectCharacter {
                 PlayerAppear { 
                     player_id: other_player.id, 
                     name: other_player.name.clone(), 
-                    class: PlayerClass::Mage, 
+                    class: other_player.class, 
                     is_current_player: false,
                     x: other_player.x, 
                     y: other_player.y, 
@@ -118,37 +161,40 @@ impl HandlePacket for SelectCharacter {
         };
         player.send(&mut (&inventory).into()).await;
 
-        let player_information = PlayerInformation { 
-            specialization: 7, 
-            unknown1: vec![0, 0], 
-            contribution: 9, 
-            base_strength: 19, 
-            base_health: 118, 
-            base_intelligence: 111, 
-            base_wisdom: 53, 
-            base_agility: 24, 
-            current_health_points: 4077, 
-            maximum_health_points: 6077, 
-            current_magic_points: 1053, 
-            maximum_magic_points: 1261, 
-            on_target_point: 80, 
-            evasion: 83, 
-            defense: 100, 
-            absorption: 9, 
-            experience: 15000,
-            unknown2: vec![0, 0, 0], 
-            minimum_physical_attack: 160, 
-            maximum_physical_attack: 212, 
-            minimum_magical_attack: 229, 
-            maximum_magical_attack: 371, 
-            status_points: 2, 
-            skill_points: 44, 
-            fire_resistence: 11, 
-            ice_resistence: 21, 
-            lighning_resistence: 31, 
-            curse_resistence: 17, 
-            non_elemental_resistence: 25, 
-            rage: 617142 
+        let player_information = {
+            let player = player.read().unwrap();
+            PlayerInformation { 
+                specialization: 7, 
+                unknown1: vec![0, 0], 
+                contribution: 9, 
+                base_strength: player.base_strength, 
+                base_health: player.base_health, 
+                base_intelligence: player.base_intelligence, 
+                base_wisdom: player.base_wisdom, 
+                base_agility: player.base_agility, 
+                current_health_points: player.current_health_points, 
+                maximum_health_points: player.maximum_health_points, 
+                current_magic_points: player.current_magic_points, 
+                maximum_magic_points: player.maximum_magic_points, 
+                on_target_point: 80, 
+                evasion: 83, 
+                defense: 100, 
+                absorption: 9, 
+                experience: player.experience,
+                unknown2: vec![0, 0, 0], 
+                minimum_physical_attack: 160, 
+                maximum_physical_attack: 212, 
+                minimum_magical_attack: 229, 
+                maximum_magical_attack: 371, 
+                status_points: 20, 
+                skill_points: 44, 
+                fire_resistence: 11, 
+                ice_resistence: 21, 
+                lighning_resistence: 31, 
+                curse_resistence: 17, 
+                non_elemental_resistence: 25, 
+                rage: player.rage 
+            }
         };
         player.send(&mut (&player_information).into()).await;
 

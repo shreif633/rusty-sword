@@ -1,0 +1,28 @@
+use bevy::prelude::*;
+use crate::packets::client::emote::Emote;
+use super::{tcp_server::SocketWriter, player_movement::{Position, Walking}, select_character::Player};
+
+pub struct EmotePlugin;
+
+impl Plugin for EmotePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, handle_emote);
+    }
+}
+
+fn handle_emote(mut commands: Commands, emote_query: Query<(Entity, &Player, &Emote, &Position, Option<&Walking>)>, players_query: Query<(&Position, &SocketWriter)>) {
+    for (entity, emote_player, client_packet, emote_position, walking) in &emote_query {
+        if walking.is_none() {
+            let emote = crate::packets::server::emote::Emote { 
+                player_id: emote_player.id, 
+                emote_index: client_packet.emote_index
+            };
+            for (position, socket_writer) in &players_query {
+                if position.is_in_sight(&emote_position) {
+                    socket_writer.write(&mut (&emote).into());
+                }
+            }
+        }
+        commands.entity(entity).remove::<Emote>();
+    }
+}

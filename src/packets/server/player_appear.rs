@@ -2,7 +2,7 @@ use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 50;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(u8)]
 pub enum PlayerClass {
     Knight = 0,

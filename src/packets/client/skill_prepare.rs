@@ -2,7 +2,7 @@ use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 81;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SkillPrepare {
     pub skill_index: u8,
     pub target_id: u32,

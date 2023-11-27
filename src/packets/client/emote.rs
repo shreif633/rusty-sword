@@ -1,8 +1,9 @@
 use crate::framework::packet::Packet;
+use bevy::prelude::*;
 
 pub const HEADER: u8 = 46;
 
-#[derive(Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct Emote {
     pub unsafe_player_id: u32,
     pub emote_index: u8

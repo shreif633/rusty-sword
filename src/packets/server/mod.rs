@@ -23,6 +23,10 @@ pub mod chat_message;
 pub mod player_walk;
 pub mod player_stop_walking;
 pub mod emote;
+pub mod system_message;
+pub mod popup_message;
+pub mod character_creation_error;
+pub mod character_restoration_error;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -49,6 +53,10 @@ pub enum ServerPacket {
     PlayerWalk(self::player_walk::PlayerWalk),
     PlayerStopWalking(self::player_stop_walking::PlayerStopWalking),
     Emote(self::emote::Emote),
+    SystemMessage(self::system_message::SystemMessage),
+    PopupMessage(self::popup_message::PopupMessage),
+    CharacterCreationError(self::character_creation_error::CharacterCreationError),
+    CharacterRestorationError(self::character_restoration_error::CharacterRestorationError),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -72,10 +80,14 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::player_walk::HEADER => ServerPacket::PlayerWalk(self::player_walk::PlayerWalk::from(&mut packet)),
         self::player_stop_walking::HEADER => ServerPacket::PlayerStopWalking(self::player_stop_walking::PlayerStopWalking::from(&mut packet)),
         self::emote::HEADER => ServerPacket::Emote(self::emote::Emote::from(&mut packet)),
+        self::character_creation_error::HEADER => ServerPacket::CharacterCreationError(self::character_creation_error::CharacterCreationError::from(&mut packet)),
+        self::character_restoration_error::HEADER => ServerPacket::CharacterRestorationError(self::character_restoration_error::CharacterRestorationError::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {
                 self::check_hash::SUB_HEADER => ServerPacket::CheckHash(self::check_hash::CheckHash::from(&mut packet)),
+                self::system_message::SUB_HEADER => ServerPacket::SystemMessage(self::system_message::SystemMessage::from(&mut packet)),
+                self::popup_message::SUB_HEADER => ServerPacket::PopupMessage(self::popup_message::PopupMessage::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         },
@@ -96,7 +108,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
                 self::guild_members::SUB_HEADER => ServerPacket::GuildMembers(self::guild_members::GuildMembers::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
-        }
+        },
         _ => ServerPacket::Unknown(packet)
     }
 }

@@ -1,46 +1,73 @@
-use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc};
+use std::sync::{Mutex, Arc};
+use crate::{plugins::{select_server::ServerSelectPlugin, tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServerPlugin}, character_selection::CharacterSelectionPlugin, select_character::SelectCharacterPlugin, player_movement::PlayerMovementPlugin, emote::EmotePlugin, chat::ChatPlugin}, framework::database::Database};
+use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc::{self}};
+use bevy::prelude::*;
 use crate::framework::packet_queue::PacketQueue;
-use crate::framework::world::{WorldLock, WorldManager};
 
-pub async fn start(address: &str) -> tokio::io::Result<()> {
-    let listener = TcpListener::bind(address).await?;
-    let world = WorldLock::default();
+async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
+    tokio::spawn(async move {
+        let socket_queue = SocketQueue { queue };
+        let database = Database::connect().await;
+        App::new()
+            .add_plugins(MinimalPlugins)
+            .add_plugins(ServerSelectPlugin)
+            .add_plugins(TcpServerPlugin)
+            .add_plugins(CharacterSelectionPlugin)
+            .add_plugins(SelectCharacterPlugin)
+            .add_plugins(PlayerMovementPlugin)
+            .add_plugins(EmotePlugin)
+            .add_plugins(ChatPlugin)
+            .insert_resource(socket_queue)
+            .insert_resource(database)
+            .run();
+    });
+}
 
+async fn start_tcp_server(address: &str, socket_queue: Arc<Mutex<Vec<SocketPair>>>) {
+    let listener = TcpListener::bind(address).await.unwrap();
     loop {
-        let (client, _) = listener.accept().await?;
-        let (mut client_reader, mut client_writer) = client.into_split();
-        let (writer, mut reader) = mpsc::channel::<Vec<u8>>(30);
-        let mut world = world.clone();
-        
-        let _ = tokio::spawn(async move {
-            let user_id = world.insert_user(writer);
+        let (stream, socket_addr) = listener.accept().await.unwrap();
+        let (mut stream_reader, mut stream_writer) = stream.into_split();
+        let (tx, mut rx) = mpsc::channel::<Vec<u8>>(20);
+        {
+            let socket_queue = socket_queue.clone();
+            socket_queue.lock().unwrap().push(SocketPair(socket_addr.to_string(), SocketMessage::Connected(tx)));
+        }
+        let socket_queue = socket_queue.clone();
+        tokio::spawn(async move {
             let mut buffer = [0; 10024];
             let mut queue = PacketQueue { buffer: vec![] };
             loop {
-                match client_reader.read(&mut buffer).await {
+                match stream_reader.read(&mut buffer).await {
                     Ok(0) => break,
                     Ok(n) => {
                         queue.push(&buffer[..n]);
                         while let Some(packet_buffer) = queue.pop() {
                             let client_packet = crate::packets::client::deserialize(&packet_buffer);
-                            client_packet.handle(&mut world, user_id).await;
+                            {
+                                socket_queue.lock().unwrap().push(SocketPair(socket_addr.to_string(), SocketMessage::Packet(client_packet)));
+                            }
                         }
                     }
                     Err(e) => {
-                        eprintln!("client error: {}", e);
+                        eprintln!("error: {}", e);
                         break;
                     }
                 }
             }
-            world.remove_user(user_id);
-            println!("ended client reader");
         });
 
-        let _ = tokio::spawn(async move {
-            while let Some(packet) = reader.recv().await {
-                let _ = client_writer.write_all(&packet).await;
+        tokio::spawn(async move {
+            while let Some(packet) = rx.recv().await {
+                let _ = stream_writer.write_all(&packet).await;
             }
-            println!("signals ended");
         });
     }
+}
+
+pub async fn start(address: &str) -> tokio::io::Result<()> {
+    let queue = Arc::new(Mutex::new(Vec::<SocketPair>::new()));
+    start_game_server(queue.clone()).await;
+    start_tcp_server(address, queue.clone()).await;
+    Ok(())
 }
