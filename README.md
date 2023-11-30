@@ -13,19 +13,17 @@ A packet sniffer that uses enums to catalog the known packets
 
 `$ cargo run -- --mode sniffer`
 
-## Sword Sandbox
-A place to play around and figure out what packets do
-
-`$ cargo run -- --mode sandbox`
-
 ## Sword Scripts
 A series of scripts used to help developing as an admin
 
 `$ cargo run -- --mode scripts --script create-account admin admin`
 
-## Running migrations
+## Setting up the project
+`$ git clone (url)`
+`$ cd rusty-sword`
 `$ sqlx database create`
 `$ sqlx migrate run`
+`$ cargo run -- --mode scripts`
 
 ### requests
 - packets coming from the clients
@@ -63,7 +61,7 @@ A series of scripts used to help developing as an admin
 - always use migrations to change the database
 - do not be afraid of having as many migrations as you need
 
-## repositories
+### repositories
 - this is the only place that should access the database directly
 - use the repository pattern
 - follows naming conventions based on exlixir phoenix 
@@ -75,3 +73,13 @@ A series of scripts used to help developing as an admin
 - Fork this repo and checkout the `development` branch
 - Make your changes
 - Submit a PR agains the `development` Branch
+
+### Naming Conventions
+- postfix structs with the singular form of its folder: ex `plugins/health.rs` -> `HealthPlugin`
+- components should not have a postfix
+- fields should have explicit long names and should never have abbreviations
+- if you do not know what a packet field does name it "unknown" so we can quickly lookup for things to investigate
+- if you do not know two or more items name it "unknown1" and "unknown2" and so on
+- fields that have vunevaribilities should be prefixed with "unsafe_"
+- fields related to entity index or database id should be postfixed with "_id"
+- fields related to config index should be postfixed with "_index"
