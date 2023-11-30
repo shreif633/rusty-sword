@@ -1,8 +1,9 @@
 use crate::framework::packet::Packet;
+use bevy::prelude::*;
 
 pub const HEADER: u8 = 41;
 
-#[derive(Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct ChatMessage {
     pub message: String
 }

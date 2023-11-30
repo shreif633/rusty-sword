@@ -1,0 +1,5 @@
+ALTER TABLE players ADD extra_strength SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD extra_health SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD extra_intelligence SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD extra_wisdom SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD extra_agility SMALLINT NOT NULL DEFAULT '0';

@@ -1,8 +1,8 @@
-use crate::framework::packet::Packet;
+use crate::{framework::packet::Packet, plugins::{select_character::{Player, Job, Appearence}, player_movement::Position}};
 
 pub const HEADER: u8 = 50;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(u8)]
 pub enum PlayerClass {
     Knight = 0,
@@ -31,6 +31,36 @@ pub struct PlayerAppear {
     pub face: u8, 
     pub hair: u8, 
     pub unknown3: Vec<u8>,
+}
+
+impl PlayerAppear {
+    pub fn new(player: &Player, job: &Job, position: &Position, appearence: &Appearence, is_current_player: bool) -> Self {
+        PlayerAppear { 
+            player_id: player.id, 
+            name: appearence.name.clone(), 
+            class: match job.class {
+                0 => crate::packets::server::player_appear::PlayerClass::Knight,
+                1 => crate::packets::server::player_appear::PlayerClass::Mage,
+                _ => crate::packets::server::player_appear::PlayerClass::Archer,
+            }, 
+            is_current_player,
+            x: position.x, 
+            y: position.y, 
+            z: position.z, 
+            unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
+            weapon_index: appearence.weapon_index, 
+            shield_index: appearence.shield_index, 
+            helmet_index: appearence.helmet_index, 
+            chest_index: appearence.chest_index, 
+            shorts_index: appearence.shorts_index, 
+            gloves_index: appearence.gloves_index, 
+            boots_index: appearence.boots_index, 
+            unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+            face: appearence.face, 
+            hair: appearence.hair, 
+            unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+        }
+    }
 }
 
 impl From<&mut Packet> for PlayerAppear {

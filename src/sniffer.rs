@@ -10,7 +10,7 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
         let (mut client_reader, mut client_writer) = client.into_split();
         let (mut server_reader, mut server_writer) = server.into_split();
 
-        let _ = tokio::spawn(async move {
+        tokio::spawn(async move {
             let mut buffer = [0; 10024];
             let mut queue = PacketQueue { buffer: vec![] };
             loop {
@@ -41,7 +41,7 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
             println!("ended client reader");
         });
 
-        let _ = tokio::spawn(async move {
+        tokio::spawn(async move {
             let mut buffer = [0; 10024];
             let mut queue = PacketQueue { buffer: vec![] };
             loop {

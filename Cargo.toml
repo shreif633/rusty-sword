@@ -7,9 +7,23 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.74"
+bevy = "0.12.0"
 clap = { version = "4.4.8", features = ["derive"] }
 dashmap = "5.5.3"
 tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.6.2", features = ["runtime-tokio-native-tls", "sqlite", "chrono"] }
+futures = "0.3.29"
+pwhash = "1.0.0"
+dotenvy = "0.15.7"
+flume = "0.11.0"
 
 [env]
 RUST_BACKTRACE = "1"
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3

@@ -1,8 +1,9 @@
 use crate::framework::packet::Packet;
+use bevy::prelude::*;
 
 pub const HEADER: u8 = 97;
 
-#[derive(Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct ServerSelect {
     pub unknown: Vec<u8>
 }

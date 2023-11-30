@@ -1,5 +1,4 @@
-use crate::framework::packet::{Packet, HandlePacket};
-use crate::framework::world::WorldLock;
+use crate::framework::packet::Packet;
 pub mod server_select;
 pub mod authenticate;
 pub mod select_character;
@@ -8,8 +7,15 @@ pub mod chat_message;
 pub mod player_walk;
 pub mod player_stop_walking;
 pub mod emote;
+pub mod create_character;
+pub mod delete_character;
+pub mod restore_deleted_character;
+pub mod equip_item;
+pub mod unequip_item;
+pub mod use_item;
+use bevy::prelude::*;
 
-#[derive(Debug)]
+#[derive(Component, Debug, Clone)]
 pub enum ClientPacket {
     ServerSelect(self::server_select::ServerSelect),
     Authenticate(self::authenticate::Authenticate),
@@ -19,6 +25,12 @@ pub enum ClientPacket {
     PlayerWalk(self::player_walk::PlayerWalk),
     PlayerStopWalking(self::player_stop_walking::PlayerStopWalking),
     Emote(self::emote::Emote),
+    CreateCharacter(self::create_character::CreateCharacter),
+    DeleteCharacter(self::delete_character::DeleteCharacter),
+    RestoreDeletedCharacter(self::restore_deleted_character::RestoreDeletedCharacter),
+    EquipItem(self::equip_item::EquipItem),
+    UnequipItem(self::unequip_item::UnequipItem),
+    UseItem(self::use_item::UseItem),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -33,23 +45,13 @@ pub fn deserialize(buffer: &[u8]) -> ClientPacket {
         self::chat_message::HEADER => ClientPacket::ChatMessage(self::chat_message::ChatMessage::from(&mut packet)),
         self::player_walk::HEADER => ClientPacket::PlayerWalk(self::player_walk::PlayerWalk::from(&mut packet)),
         self::player_stop_walking::HEADER => ClientPacket::PlayerStopWalking(self::player_stop_walking::PlayerStopWalking::from(&mut packet)),
+        self::create_character::HEADER => ClientPacket::CreateCharacter(self::create_character::CreateCharacter::from(&mut packet)),
+        self::delete_character::HEADER => ClientPacket::DeleteCharacter(self::delete_character::DeleteCharacter::from(&mut packet)),
+        self::restore_deleted_character::HEADER => ClientPacket::RestoreDeletedCharacter(self::restore_deleted_character::RestoreDeletedCharacter::from(&mut packet)),
+        self::equip_item::HEADER => ClientPacket::EquipItem(self::equip_item::EquipItem::from(&mut packet)),
+        self::unequip_item::HEADER => ClientPacket::UnequipItem(self::unequip_item::UnequipItem::from(&mut packet)),
+        self::use_item::HEADER => ClientPacket::UseItem(self::use_item::UseItem::from(&mut packet)),
         self::emote::HEADER => ClientPacket::Emote(self::emote::Emote::from(&mut packet)),
         _ => ClientPacket::Unknown(packet)
-    }
-}
-
-impl ClientPacket {
-    pub async fn handle(&self, world: &mut WorldLock, user_id: u32) {
-        match self {
-            ClientPacket::ServerSelect(packet) => packet.handle(world, user_id).await,
-            ClientPacket::Authenticate(packet) => packet.handle(world, user_id).await,
-            ClientPacket::SelectCharacter(packet) => packet.handle(world, user_id).await,
-            ClientPacket::SkillPrepare(packet) => packet.handle(world, user_id).await,
-            ClientPacket::ChatMessage(packet) => packet.handle(world, user_id).await,
-            ClientPacket::PlayerWalk(packet) => packet.handle(world, user_id).await,
-            ClientPacket::PlayerStopWalking(packet) => packet.handle(world, user_id).await,
-            ClientPacket::Emote(packet) => packet.handle(world, user_id).await,
-            ClientPacket::Unknown(packet) => packet.handle(user_id).await
-        }
     }
 }

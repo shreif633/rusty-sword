@@ -10,11 +10,11 @@ pub struct PlayerCharacter {
     pub specialty: u8,
     pub level: u8,
     pub unknown1: Vec<u8>,
-    pub strength: u16,
-    pub health: u16,
-    pub intelligence: u16,
-    pub wisdom: u16,
-    pub agility: u16,
+    pub base_strength: u16,
+    pub base_health: u16,
+    pub base_intelligence: u16,
+    pub base_wisdom: u16,
+    pub base_agility: u16,
     pub face: u8,
     pub hair: u8,
     pub items_indexes: Vec<u16>
@@ -38,11 +38,11 @@ impl From<&mut Packet> for ListPlayerCharacters {
             let specialty = packet.get_u8();
             let level = packet.get_u8();
             let unknown1 = packet.get_buffer(4);
-            let strength = packet.get_u16();
-            let health = packet.get_u16();
-            let intelligence = packet.get_u16();
-            let wisdom = packet.get_u16();
-            let agility = packet.get_u16();
+            let base_strength = packet.get_u16();
+            let base_health = packet.get_u16();
+            let base_intelligence = packet.get_u16();
+            let base_wisdom = packet.get_u16();
+            let base_agility = packet.get_u16();
             let face = packet.get_u8();
             let hair = packet.get_u8();
             let items_count = packet.get_u8();
@@ -52,8 +52,8 @@ impl From<&mut Packet> for ListPlayerCharacters {
                 items_indexes.push(item_index);
             }
             let character = PlayerCharacter { 
-                id, name, class, specialty, level, strength, health, 
-                intelligence, wisdom, agility, face, hair, items_indexes,
+                id, name, class, specialty, level, base_strength, base_health, 
+                base_intelligence, base_wisdom, base_agility, face, hair, items_indexes,
                 unknown1, 
             };
             characters.push(character);
@@ -74,11 +74,11 @@ impl From<&ListPlayerCharacters> for Packet {
             packet.write_u8(character.specialty);
             packet.write_u8(character.level);
             packet.write_buffer(&character.unknown1);
-            packet.write_u16(character.strength);
-            packet.write_u16(character.health);
-            packet.write_u16(character.intelligence);
-            packet.write_u16(character.wisdom);
-            packet.write_u16(character.agility);
+            packet.write_u16(character.base_strength);
+            packet.write_u16(character.base_health);
+            packet.write_u16(character.base_intelligence);
+            packet.write_u16(character.base_wisdom);
+            packet.write_u16(character.base_agility);
             packet.write_u8(character.face);
             packet.write_u8(character.hair);
             packet.write_u8(character.items_indexes.len().try_into().unwrap());
