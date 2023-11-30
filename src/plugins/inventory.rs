@@ -1,8 +1,9 @@
 use bevy::prelude::*;
-use sqlx::query;
 use crate::components::equipped_weapon::EquippedWeapon;
+use crate::components::item::Item;
 use crate::components::player::Player;
 use crate::components::position::Position;
+use crate::repositories::item::find_all_items_by_player_id;
 use crate::responses::equip_item::EquipItemResponse;
 use crate::responses::inventory::InventoryResponse;
 use crate::{framework::database::Database, responses::unequip_item::UnequipItemResponse};
@@ -22,116 +23,21 @@ impl Plugin for InventoryPlugin {
         app.add_systems(Update, use_item);
     }
 }
-
-#[derive(Component)]
-struct ItemRow {
-    id: i32,
-    index: u16,
-    prefix: u8,
-    quantity: u32,
-    maximum_endurance: u8,
-    current_endurance: u8,
-    physical_attack_talisman: u8,
-    magical_attack_talisman: u8,
-    talisman_of_accuracy: u8,
-    talisman_of_defence: u8,
-    upgrade_level: u8,
-    upgrade_rate: u8
-}
-
-#[derive(Component, Debug)]
-struct Item {
-    id: i32,
-    index: u16,
-    prefix: u8,
-    quantity: u32,
-    maximum_endurance: u8,
-    current_endurance: u8,
-    physical_attack_talisman: u8,
-    magical_attack_talisman: u8,
-    talisman_of_accuracy: u8,
-    talisman_of_defence: u8,
-    upgrade_level: u8,
-    upgrade_rate: u8
-}
-
 #[derive(Component)]
 struct PlayerOwner {
     player: Entity
 }
 
-fn query_player_items(database: &Database, player_id: u32) -> Vec<ItemRow> {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    let rows = rt.block_on(async move {
-        query!("SELECT * FROM items WHERE player_id = ?", player_id).fetch_all(&database.connection).await.unwrap()
-    });
-    let mut items: Vec<ItemRow> = vec![];
-    for row in rows {
-        let item = ItemRow { 
-            id: row.id.try_into().unwrap(), 
-            index: row.item_index.try_into().unwrap(), 
-            prefix: row.prefix.try_into().unwrap(), 
-            quantity: row.quantity.try_into().unwrap(), 
-            maximum_endurance: row.maximum_endurance.try_into().unwrap(), 
-            current_endurance: row.current_endurance.try_into().unwrap(), 
-            physical_attack_talisman: row.physical_attack_talisman.try_into().unwrap(), 
-            magical_attack_talisman: row.magical_attack_talisman.try_into().unwrap(), 
-            talisman_of_accuracy: row.talisman_of_accuracy.try_into().unwrap(), 
-            talisman_of_defence: row.talisman_of_defence.try_into().unwrap(), 
-            upgrade_level: row.upgrade_level.try_into().unwrap(), 
-            upgrade_rate: row.upgrade_rate.try_into().unwrap(), 
-        };
-        items.push(item);
-    }
-    items
-}
-
 fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &Player, &SocketWriter)>, database: Res<Database>) {
     for (entity, added_player, player, socket_writer) in &query {
         if added_player {
-            let player_items = query_player_items(&database, player.id);
-            let items: Vec<crate::responses::inventory::Item> = player_items.iter().map(|i| {
-                let item_id = commands.spawn((
-                    Item { 
-                        id: i.id, 
-                        index: i.index, 
-                        prefix: i.prefix, 
-                        quantity: i.quantity, 
-                        maximum_endurance: i.maximum_endurance, 
-                        current_endurance: i.current_endurance, 
-                        physical_attack_talisman: i.physical_attack_talisman, 
-                        magical_attack_talisman: i.magical_attack_talisman, 
-                        talisman_of_accuracy: i.talisman_of_accuracy, 
-                        talisman_of_defence: i.talisman_of_defence, 
-                        upgrade_level: i.upgrade_level, 
-                        upgrade_rate: i.upgrade_rate 
-                    },
-                    PlayerOwner { 
-                        player: entity 
-                    }
-                )).id().index();
-                crate::responses::inventory::Item { 
-                    index: i.index, 
-                    id: item_id.try_into().unwrap(), 
-                    prefix: i.prefix, 
-                    info: 0, 
-                    quantity: i.quantity,
-                    maximum_endurance: i.maximum_endurance, 
-                    current_endurance: i.current_endurance, 
-                    unknown1: 0, 
-                    physical_attack_talisman: i.physical_attack_talisman, 
-                    magical_attack_talisman: i.magical_attack_talisman, 
-                    unknown2: vec![0], 
-                    talisman_of_accuracy: i.talisman_of_accuracy, 
-                    unknown3: vec![0], 
-                    talisman_of_defence: i.talisman_of_defence, 
-                    unknown4: vec![57], 
-                    upgrade_level: i.upgrade_level, 
-                    upgrade_rate: i.upgrade_rate, 
-                    seconds_remaining: 0, 
-                    unknown5: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            }}).collect();
-            let inventory = InventoryResponse { items };
+            let items = find_all_items_by_player_id(&database, player.id);
+            let items: Vec<(u32, Item)> = items.iter().map(|item_row| {
+                let item = Item::new(&item_row);
+                let item_id = commands.spawn((item.clone(), PlayerOwner { player: entity })).id().index();
+                (item_id, item)
+            }).collect();
+            let inventory = InventoryResponse::new(items);
             socket_writer.write(&mut (&inventory).into());
         }
     }

@@ -6,6 +6,7 @@ pub mod experience;
 pub mod equipped_weapon;
 pub mod extra_points;
 pub mod final_points;
+pub mod item;
 pub mod job;
 pub mod magical_attack;
 pub mod maximum_health_points;

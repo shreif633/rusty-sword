@@ -1,6 +1,7 @@
 # Rusty Sword
 This project is composed of multiple tools to deal with a korean game about swords.
 It is written in rust using ECS and Repository Patterns.
+This is rapidly changing and is still experimental.
 
 ## Sword Server
 A server emulator that can be extended with ECS plugins
@@ -25,15 +26,6 @@ A series of scripts used to help developing as an admin
 ## Running migrations
 `$ sqlx database create`
 `$ sqlx migrate run`
-
-### TODO
-- kick player already logged
-- backup player stats 
-- skill cast sample
-- guild load
-- inventory load
-- skills load
-- player statuses
 
 ### requests
 - packets coming from the clients
@@ -70,3 +62,16 @@ A series of scripts used to help developing as an admin
 - sqlx migrations
 - always use migrations to change the database
 - do not be afraid of having as many migrations as you need
+
+## repositories
+- this is the only place that should access the database directly
+- use the repository pattern
+- follows naming conventions based on exlixir phoenix 
+- use entire rows to read
+- use small changesets to write
+
+## How to contribute
+- The master branch is only for stable and reviewed code
+- Fork this repo and checkout the `development` branch
+- Make your changes
+- Submit a PR agains the `development` Branch
