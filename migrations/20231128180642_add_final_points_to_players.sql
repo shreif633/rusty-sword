@@ -1,0 +1,9 @@
+ALTER TABLE players ADD on_target_point SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD evasion SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD defense SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD absorption SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD fire_resistence SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD ice_resistence SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD lighning_resistence SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD curse_resistence SMALLINT NOT NULL DEFAULT '0';
+ALTER TABLE players ADD non_elemental_resistence SMALLINT NOT NULL DEFAULT '0';

@@ -1,20 +1,20 @@
 use bevy::prelude::*;
 use sqlx::{types::chrono::NaiveDateTime, query};
-use crate::{packets::client::select_character::SelectCharacter, framework::database::Database};
-use super::{character_selection::User, player_movement::{Position, PreviousPosition}};
+use crate::{packets::{client::select_character::SelectCharacter, server::{player_information::PlayerInformation, player_extra_agility::PlayerExtraAgility, player_extra_wisdom::PlayerExtraWisdom, player_extra_intelligence::PlayerExtraIntelligence, player_extra_strength::PlayerExtraStrength, player_extra_health::PlayerExtraHealth}}, framework::database::Database};
+use super::{character_selection::User, player_movement::{Position, PreviousPosition}, tcp_server::SocketWriter, inventory::{Weapon, OldWeapon}};
 
 pub struct SelectCharacterPlugin;
 
 impl Plugin for SelectCharacterPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, handle_select_character);
+        app.add_systems(Update, character_information);
     }
 }
 
 #[derive(Component)]
 pub struct Player {
     pub id: u32,
-    pub class: u8,
 }
 
 #[derive(Component)]
@@ -32,14 +32,83 @@ pub struct Appearence {
 }
 
 #[derive(Component)]
-struct PlayerBuild {
+pub struct Job {
     pub level: u8,
+    pub class: u8,
     pub specialty: u8,
+}
+
+#[derive(Component)]
+struct BasePoints {
     pub base_strength: u16, 
     pub base_health: u16, 
     pub base_intelligence: u16, 
     pub base_wisdom: u16,
     pub base_agility: u16,  
+}
+
+#[derive(Component)]
+struct ExtraPoints {
+    pub extra_strength: u16, 
+    pub extra_health: u16, 
+    pub extra_intelligence: u16, 
+    pub extra_wisdom: u16,
+    pub extra_agility: u16,  
+}
+
+#[derive(Component)]
+struct FinalPoints {
+    pub on_target_point: u16, 
+    pub evasion: u16, 
+    pub defense: u16, 
+    pub absorption: u16, 
+    pub fire_resistence: u16, 
+    pub ice_resistence: u16, 
+    pub lighning_resistence: u16,
+    pub curse_resistence: u16, 
+    pub non_elemental_resistence: u16,
+}
+
+#[derive(Component)]
+struct Rage {
+    pub rage: u32,
+}
+
+#[derive(Component)]
+struct Experience {
+    pub experience: u32,
+}
+
+#[derive(Component)]
+struct PhysicalAttack {
+    pub minimum_physical_attack: u16,
+    pub maximum_physical_attack: u16,
+}
+
+#[derive(Component)]
+struct MagicalAttack {
+    pub minimum_magical_attack: u16,
+    pub maximum_magical_attack: u16,
+}
+
+#[derive(Component)]
+struct CurrentHealthPoints {
+    current_health_points: u32
+}
+
+#[derive(Component)]
+struct MaximumHealthPoints {
+    maximum_health_points: u32
+}
+
+#[derive(Component)]
+struct CurrentMagicPoints {
+    current_magic_points: u16
+}
+
+#[derive(Component)]
+struct MaximumMagicPoints {
+    maximum_magic_points: u16
 }
 
 struct PlayerRow {
@@ -54,6 +123,15 @@ struct PlayerRow {
     base_intelligence: u16, 
     base_wisdom: u16,
     base_agility: u16,  
+    extra_strength: u16, 
+    extra_health: u16, 
+    extra_intelligence: u16, 
+    extra_wisdom: u16,
+    extra_agility: u16,  
+    minimum_physical_attack: u16,
+    maximum_physical_attack: u16,
+    minimum_magical_attack: u16,
+    maximum_magical_attack: u16,
     x: u32,
     y: u32,
     z: u32,
@@ -72,7 +150,16 @@ struct PlayerRow {
     maximum_magic_points: u16,
     experience: u32,
     deleted_at: Option<NaiveDateTime>, 
-    rage: u32
+    rage: u32,
+    on_target_point: u16, 
+    evasion: u16, 
+    defense: u16, 
+    absorption: u16, 
+    fire_resistence: u16, 
+    ice_resistence: u16, 
+    lighning_resistence: u16,
+    curse_resistence: u16, 
+    non_elemental_resistence: u16,
 }
 
 fn query_player(database: &Database, user_id: u32, character_id: u32) -> Option<PlayerRow> {
@@ -115,11 +202,28 @@ fn query_player(database: &Database, user_id: u32, character_id: u32) -> Option<
             maximum_magic_points: row.maximum_magic_points.try_into().unwrap(), 
             experience: row.experience.try_into().unwrap(), 
             deleted_at: row.deleted_at, 
-            rage: row.rage.try_into().unwrap() 
+            rage: row.rage.try_into().unwrap(),
+            extra_strength: row.extra_strength.try_into().unwrap(),
+            extra_health: row.extra_health.try_into().unwrap(), 
+            extra_intelligence: row.extra_intelligence.try_into().unwrap(),
+            extra_wisdom: row.extra_wisdom.try_into().unwrap(),
+            extra_agility: row.extra_agility.try_into().unwrap(), 
+            minimum_physical_attack: row.minimum_physical_attack.try_into().unwrap(), 
+            maximum_physical_attack: row.maximum_physical_attack.try_into().unwrap(), 
+            minimum_magical_attack: row.minimum_magical_attack.try_into().unwrap(), 
+            maximum_magical_attack: row.maximum_magical_attack.try_into().unwrap(), 
+            on_target_point: row.on_target_point.try_into().unwrap(), 
+            evasion: row.evasion.try_into().unwrap(), 
+            defense: row.defense.try_into().unwrap(),  
+            absorption: row.absorption.try_into().unwrap(), 
+            fire_resistence: row.fire_resistence.try_into().unwrap(), 
+            ice_resistence: row.ice_resistence.try_into().unwrap(), 
+            lighning_resistence: row.lighning_resistence.try_into().unwrap(), 
+            curse_resistence: row.curse_resistence.try_into().unwrap(), 
+            non_elemental_resistence: row.non_elemental_resistence.try_into().unwrap(), 
         }),
         None => None,
     }
-    
 }
 
 fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, &SelectCharacter)>, database: Res<Database>) {
@@ -127,16 +231,36 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
         if let Some(player_row) = query_player(&database, user.id, client_packet.character_id) {
             commands.entity(entity).insert(Player { 
                 id: player_row.id, 
-                class: player_row.class,  
             });
-            commands.entity(entity).insert(PlayerBuild {
+            commands.entity(entity).insert(Job { 
+                class: player_row.class,
                 level: player_row.level,
-                specialty: player_row.specialty,
+                specialty: player_row.specialty,  
+            });
+            commands.entity(entity).insert(BasePoints {
                 base_strength: player_row.base_strength,
                 base_health: player_row.base_health,
                 base_intelligence: player_row.base_intelligence,
                 base_wisdom: player_row.base_wisdom,
                 base_agility: player_row.base_agility,
+            });
+            commands.entity(entity).insert(ExtraPoints {
+                extra_strength: player_row.extra_strength,
+                extra_health: player_row.extra_health,
+                extra_intelligence: player_row.extra_intelligence,
+                extra_wisdom: player_row.extra_wisdom,
+                extra_agility: player_row.extra_agility,
+            });
+            commands.entity(entity).insert(FinalPoints {
+                on_target_point: player_row.on_target_point,
+                evasion: player_row.evasion,
+                defense: player_row.defense,
+                absorption: player_row.absorption,
+                fire_resistence: player_row.fire_resistence,
+                ice_resistence: player_row.ice_resistence,
+                lighning_resistence: player_row.lighning_resistence,
+                curse_resistence: player_row.curse_resistence,
+                non_elemental_resistence: player_row.non_elemental_resistence,
             });
             commands.entity(entity).insert(PreviousPosition { 
                 x: 0, 
@@ -147,6 +271,32 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
                 x: player_row.x, 
                 y: player_row.y, 
                 z: player_row.z
+            });
+            commands.entity(entity).insert(MaximumHealthPoints {
+                maximum_health_points: player_row.maximum_health_points,
+            });
+            commands.entity(entity).insert(CurrentHealthPoints {
+                current_health_points: player_row.current_health_points,
+            });
+            commands.entity(entity).insert(MaximumMagicPoints {
+                maximum_magic_points: player_row.maximum_magic_points,
+            });
+            commands.entity(entity).insert(CurrentMagicPoints {
+                current_magic_points: player_row.current_magic_points,
+            });
+            commands.entity(entity).insert(Experience { 
+                experience: player_row.experience
+            });
+            commands.entity(entity).insert(Rage { 
+                rage: player_row.rage
+            });
+            commands.entity(entity).insert(PhysicalAttack {
+                minimum_physical_attack: player_row.minimum_physical_attack,
+                maximum_physical_attack: player_row.maximum_physical_attack,
+            });
+            commands.entity(entity).insert(MagicalAttack {
+                minimum_magical_attack: player_row.minimum_magical_attack,
+                maximum_magical_attack: player_row.minimum_magical_attack,
             });
             commands.entity(entity).insert(Appearence {
                 name: player_row.name,
@@ -160,7 +310,99 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
                 gloves_index: player_row.gloves_index,
                 boots_index: player_row.boots_index,
             });
+            commands.entity(entity).insert(Weapon {
+                item: None 
+            });
+            commands.entity(entity).insert(OldWeapon {
+                item: None 
+            });
         }
         commands.entity(entity).remove::<SelectCharacter>();
+    }
+}
+
+fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraPoints, &FinalPoints, &PhysicalAttack, &MagicalAttack, &CurrentHealthPoints, &MaximumHealthPoints, &CurrentMagicPoints, &MaximumMagicPoints, &Rage, &Experience, &SocketWriter)>) {
+    for (player_added, job, base_points, extra_points, final_points, physical_attack, magical_attack, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, rage, experience, socket_writer) in &query {
+        if player_added {
+            let player_information = PlayerInformation { 
+                specialization: job.specialty, 
+                unknown1: vec![0, 0], 
+                contribution: 9, 
+                base_strength: base_points.base_strength, 
+                base_health: base_points.base_health, 
+                base_intelligence: base_points.base_intelligence, 
+                base_wisdom: base_points.base_wisdom, 
+                base_agility: base_points.base_agility, 
+                current_health_points: current_health_points.current_health_points, 
+                maximum_health_points: maximum_health_points.maximum_health_points, 
+                current_magic_points: current_magic_points.current_magic_points, 
+                maximum_magic_points: maximum_magic_points.maximum_magic_points, 
+                on_target_point: final_points.on_target_point, 
+                evasion: final_points.evasion, 
+                defense: final_points.defense, 
+                absorption: final_points.absorption, 
+                experience: experience.experience,
+                unknown2: vec![0, 0, 0], 
+                minimum_physical_attack: physical_attack.minimum_physical_attack, 
+                maximum_physical_attack: physical_attack.maximum_physical_attack, 
+                minimum_magical_attack: magical_attack.minimum_magical_attack, 
+                maximum_magical_attack: magical_attack.maximum_magical_attack, 
+                status_points: 20, 
+                skill_points: 44, 
+                fire_resistence: final_points.fire_resistence.try_into().unwrap(), 
+                ice_resistence: final_points.ice_resistence.try_into().unwrap(), 
+                lighning_resistence: final_points.lighning_resistence.try_into().unwrap(), 
+                curse_resistence: final_points.curse_resistence.try_into().unwrap(), 
+                non_elemental_resistence: final_points.non_elemental_resistence.try_into().unwrap(), 
+                rage: rage.rage 
+            };
+            socket_writer.write(&mut (&player_information).into());
+
+            let player_extra_health = PlayerExtraHealth { 
+                extra_health: extra_points.extra_health, 
+                current_health_points: current_health_points.current_health_points, 
+                maximum_health_points: maximum_health_points.maximum_health_points, 
+                non_elemental_resistence: final_points.non_elemental_resistence 
+            };
+            socket_writer.write(&mut (&player_extra_health).into());
+
+            let player_extra_strength = PlayerExtraStrength { 
+                extra_strength: extra_points.extra_strength, 
+                on_target_point: final_points.on_target_point, 
+                minimum_physical_attack: physical_attack.minimum_physical_attack, 
+                maximum_physical_attack: physical_attack.maximum_physical_attack 
+            };
+            socket_writer.write(&mut (&player_extra_strength).into());
+
+            let player_extra_intelligence = PlayerExtraIntelligence { 
+                extra_intelligence: extra_points.extra_intelligence, 
+                minimum_magical_attack: magical_attack.minimum_magical_attack, 
+                maximum_magical_attack: magical_attack.maximum_magical_attack, 
+                fire_resistence: final_points.fire_resistence, 
+                ice_resistence: final_points.ice_resistence, 
+                lighning_resistence: final_points.lighning_resistence 
+            };
+            socket_writer.write(&mut (&player_extra_intelligence).into());
+
+            let player_extra_wisdom = PlayerExtraWisdom { 
+                extra_wisdom: extra_points.extra_wisdom, 
+                current_magic_points: current_magic_points.current_magic_points, 
+                maximum_magic_points: maximum_magic_points.maximum_magic_points, 
+                minimum_magical_attack: magical_attack.minimum_magical_attack, 
+                maximum_magical_attack: magical_attack.maximum_magical_attack, 
+                curse_resistence: final_points.curse_resistence 
+            };
+            socket_writer.write(&mut (&player_extra_wisdom).into());
+
+            let player_extra_agility = PlayerExtraAgility {
+                extra_agility: extra_points.extra_agility, 
+                on_target_point: final_points.on_target_point, 
+                evasion: final_points.evasion, 
+                unknown_evasion_copy: final_points.evasion, 
+                minimum_physical_attack: physical_attack.minimum_physical_attack, 
+                maximum_physical_attack: physical_attack.maximum_physical_attack
+            };
+            socket_writer.write(&mut (&player_extra_agility).into());
+        }
     }
 }

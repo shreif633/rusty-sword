@@ -1,7 +1,7 @@
+use std::env;
+
 use sqlx::{SqlitePool, Pool, Sqlite};
 use bevy::prelude::*;
-
-const DB_URL: &str = "sqlite://db/sword.db";
 
 #[derive(Resource)]
 pub struct Database {
@@ -10,7 +10,8 @@ pub struct Database {
 
 impl Database {
     pub async fn connect() -> Self {
-        let connection = SqlitePool::connect(DB_URL).await.unwrap();
+        let database_url = env::var("DATABASE_URL").unwrap();
+        let connection = SqlitePool::connect(&database_url).await.unwrap();
         Database { connection }
     }
 }

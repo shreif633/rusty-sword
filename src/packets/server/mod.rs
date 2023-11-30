@@ -27,6 +27,8 @@ pub mod system_message;
 pub mod popup_message;
 pub mod character_creation_error;
 pub mod character_restoration_error;
+pub mod equip_item;
+pub mod unequip_item;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -57,6 +59,8 @@ pub enum ServerPacket {
     PopupMessage(self::popup_message::PopupMessage),
     CharacterCreationError(self::character_creation_error::CharacterCreationError),
     CharacterRestorationError(self::character_restoration_error::CharacterRestorationError),
+    EquipItem(self::equip_item::EquipItem),
+    UnequipItem(self::unequip_item::UnequipItem),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -82,6 +86,8 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::emote::HEADER => ServerPacket::Emote(self::emote::Emote::from(&mut packet)),
         self::character_creation_error::HEADER => ServerPacket::CharacterCreationError(self::character_creation_error::CharacterCreationError::from(&mut packet)),
         self::character_restoration_error::HEADER => ServerPacket::CharacterRestorationError(self::character_restoration_error::CharacterRestorationError::from(&mut packet)),
+        self::equip_item::HEADER => ServerPacket::EquipItem(self::equip_item::EquipItem::from(&mut packet)),
+        self::unequip_item::HEADER => ServerPacket::UnequipItem(self::unequip_item::UnequipItem::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

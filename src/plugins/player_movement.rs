@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::packets::{client::{player_walk::PlayerWalk, player_stop_walking::PlayerStopWalking}, server::{player_position::PlayerPosition, player_appear::PlayerAppear}};
-use super::{tcp_server::SocketWriter, select_character::{Player, Appearence}};
+use super::{tcp_server::SocketWriter, select_character::{Player, Appearence, Job}};
 
 pub struct PlayerMovementPlugin;
 
@@ -70,55 +70,27 @@ pub struct Walking {
     delta_z: u8,
 }
 
-fn build_player_appear_packet(player: &Player, position: &Position, appearence: &Appearence, is_current_player: bool) -> PlayerAppear {
-    PlayerAppear { 
-        player_id: player.id, 
-        name: appearence.name.clone(), 
-        class: match player.class {
-            0 => crate::packets::server::player_appear::PlayerClass::Knight,
-            1 => crate::packets::server::player_appear::PlayerClass::Mage,
-            _ => crate::packets::server::player_appear::PlayerClass::Archer,
-        }, 
-        is_current_player,
-        x: position.x, 
-        y: position.y, 
-        z: position.z, 
-        unknown1: vec![1, 0, 0, 0, 0, 136, 0, 0, 0, 0], 
-        weapon_index: appearence.weapon_index, 
-        shield_index: appearence.shield_index, 
-        helmet_index: appearence.helmet_index, 
-        chest_index: appearence.chest_index, 
-        shorts_index: appearence.shorts_index, 
-        gloves_index: appearence.gloves_index, 
-        boots_index: appearence.boots_index, 
-        unknown2: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        face: appearence.face, 
-        hair: appearence.hair, 
-        unknown3: vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 2, 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
-    }
-}
-
-fn handle_position_added(query: Query<(Added<Position>, &Player, &Position, &Appearence, &SocketWriter)>) {
-    for (added_position, player, position, appearence, socket_writer) in &query {
+fn handle_position_added(query: Query<(Added<Position>, &Player, &Job, &Position, &Appearence, &SocketWriter)>) {
+    for (added_position, player, job, position, appearence, socket_writer) in &query {
         if added_position {
             let player_position = PlayerPosition { unknown: vec![47, 1], x: position.x, y: position.y };
             socket_writer.write(&mut (&player_position).into());
-            let player_appear = build_player_appear_packet(&player, &position, &appearence, true);
+            let player_appear = PlayerAppear::new(&player, &job, &position, &appearence, true);
             socket_writer.write(&mut (&player_appear).into());
         }
     }
 }
 
-fn handle_position_change(moved_query: Query<(&Player, Changed<Position>, &PreviousPosition, &Position, &Appearence, &SocketWriter)>, players_query: Query<(&Player, &Position, &Appearence, &SocketWriter)>) {
-    for (moved_player, moved_position_changed, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
+fn handle_position_change(moved_query: Query<(&Player, Changed<Position>, &Job, &PreviousPosition, &Position, &Appearence, &SocketWriter)>, players_query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter)>) {
+    for (moved_player, moved_position_changed, moved_job, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
         if moved_position_changed {
-            for (player, position, appearence, socket_writer) in &players_query {
+            for (player, job, position, appearence, socket_writer) in &players_query {
                 if moved_player.id != player.id {
                     if !position.is_in_sight(&moved_previous_position) {
                         if position.is_in_sight(&moved_position) {
-                            let player_appear = build_player_appear_packet(&moved_player, &moved_position, &moved_appearence, false);
+                            let player_appear = PlayerAppear::new(&moved_player, &moved_job, &moved_position, &moved_appearence, false);
                             socket_writer.write(&mut (&player_appear).into());
-                            let player_appear = build_player_appear_packet(&player, &position, &appearence, false);
+                            let player_appear = PlayerAppear::new(&player, &job, &position, &appearence, false);
                             moved_socket_writer.write(&mut (&player_appear).into());
                         }
                     }

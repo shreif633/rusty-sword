@@ -10,6 +10,9 @@ pub mod emote;
 pub mod create_character;
 pub mod delete_character;
 pub mod restore_deleted_character;
+pub mod equip_item;
+pub mod unequip_item;
+pub mod use_item;
 use bevy::prelude::*;
 
 #[derive(Component, Debug, Clone)]
@@ -25,6 +28,9 @@ pub enum ClientPacket {
     CreateCharacter(self::create_character::CreateCharacter),
     DeleteCharacter(self::delete_character::DeleteCharacter),
     RestoreDeletedCharacter(self::restore_deleted_character::RestoreDeletedCharacter),
+    EquipItem(self::equip_item::EquipItem),
+    UnequipItem(self::unequip_item::UnequipItem),
+    UseItem(self::use_item::UseItem),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -42,6 +48,9 @@ pub fn deserialize(buffer: &[u8]) -> ClientPacket {
         self::create_character::HEADER => ClientPacket::CreateCharacter(self::create_character::CreateCharacter::from(&mut packet)),
         self::delete_character::HEADER => ClientPacket::DeleteCharacter(self::delete_character::DeleteCharacter::from(&mut packet)),
         self::restore_deleted_character::HEADER => ClientPacket::RestoreDeletedCharacter(self::restore_deleted_character::RestoreDeletedCharacter::from(&mut packet)),
+        self::equip_item::HEADER => ClientPacket::EquipItem(self::equip_item::EquipItem::from(&mut packet)),
+        self::unequip_item::HEADER => ClientPacket::UnequipItem(self::unequip_item::UnequipItem::from(&mut packet)),
+        self::use_item::HEADER => ClientPacket::UseItem(self::use_item::UseItem::from(&mut packet)),
         self::emote::HEADER => ClientPacket::Emote(self::emote::Emote::from(&mut packet)),
         _ => ClientPacket::Unknown(packet)
     }

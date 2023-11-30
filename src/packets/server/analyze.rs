@@ -7,6 +7,12 @@ pub struct Analyze {
     pub unknown: Vec<u8>
 }
 
+impl Analyze {
+    pub fn new() -> Self {
+        Analyze { unknown: vec![211, 0, 0, 0, 28, 207, 86, 101, 0, 128, 3, 0] }
+    }
+}
+
 impl From<&mut Packet> for Analyze {
     fn from(packet: &mut Packet) -> Self {
         Analyze { unknown: packet.buffer.clone() }

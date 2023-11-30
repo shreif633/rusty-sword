@@ -64,12 +64,22 @@ fn process_socket_queue(mut commands: Commands, queue: ResMut<SocketQueue>, enti
                             ClientPacket::RestoreDeletedCharacter(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::CreateCharacter(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::SelectCharacter(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
-                            // ClientPacket::SkillPrepare(_) => todo!(),
                             ClientPacket::ChatMessage(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::PlayerWalk(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::PlayerStopWalking(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::Emote(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
-                            _ => println!("{:?}", client_packet),
+                            ClientPacket::EquipItem(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
+                            ClientPacket::UnequipItem(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
+                            ClientPacket::UseItem(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
+                            _ => {
+                                if let ClientPacket::Unknown(ref client_packet) = client_packet {
+                                    if *client_packet.buffer.get(2).unwrap() != 253 {
+                                        println!("{:?}", client_packet)
+                                    }
+                                } else {
+                                    println!("{:?}", client_packet)
+                                }
+                            },
                         };
                     }
                 }

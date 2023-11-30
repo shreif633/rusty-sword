@@ -8,6 +8,12 @@ pub struct CheckHash {
     pub hash: u32,
 }
 
+impl CheckHash {
+    pub fn new() -> Self {
+        CheckHash { hash: 1325039837 }
+    }
+}
+
 impl From<&mut Packet> for CheckHash {
     fn from(packet: &mut Packet) -> Self {
         let hash = packet.get_u32();

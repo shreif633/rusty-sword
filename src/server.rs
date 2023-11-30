@@ -1,5 +1,5 @@
 use std::sync::{Mutex, Arc};
-use crate::{plugins::{select_server::ServerSelectPlugin, tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServerPlugin}, character_selection::CharacterSelectionPlugin, select_character::SelectCharacterPlugin, player_movement::PlayerMovementPlugin, emote::EmotePlugin, chat::ChatPlugin}, framework::database::Database};
+use crate::{plugins::{select_server::ServerSelectPlugin, tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServerPlugin}, character_selection::CharacterSelectionPlugin, select_character::SelectCharacterPlugin, player_movement::PlayerMovementPlugin, emote::EmotePlugin, chat::ChatPlugin, persist_player::PersistPlayerPlugin, inventory::InventoryPlugin, skills::SkillsPlugin}, framework::database::Database};
 use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc::{self}};
 use bevy::prelude::*;
 use crate::framework::packet_queue::PacketQueue;
@@ -17,6 +17,9 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(PlayerMovementPlugin)
             .add_plugins(EmotePlugin)
             .add_plugins(ChatPlugin)
+            .add_plugins(PersistPlayerPlugin)
+            .add_plugins(InventoryPlugin)
+            .add_plugins(SkillsPlugin)
             .insert_resource(socket_queue)
             .insert_resource(database)
             .run();

@@ -121,18 +121,18 @@ fn get_characters_count(database: &Database, user_id: u32) -> i32 {
     })
 }
 
-fn create_character(database: &Database, socket_writer: &SocketWriter, user_id: u32, name: &str, base_strength: u8, base_health: u8, base_intelligence: u8, base_wisdom: u8, base_agility: u8, face: u8, hair: u8, class: PlayerClass) {
+fn create_character(database: &Database, socket_writer: &SocketWriter, user_id: u32, name: &str, base_strength: u8, base_health: u8, base_intelligence: u8, base_wisdom: u8, base_agility: u8, face: u8, hair: u8, class: PlayerClass) -> Option<u32> {
     if get_characters_count(database, user_id) >= 5 {
-        return;
+        return None;
     }
     if is_name_taken(database, name) {
         use crate::packets::server::character_creation_error::Error;
         let character_creation_error = CharacterCreationError { error: Error::NameTaken };
         socket_writer.write(&mut (&character_creation_error).into());
-        return;
+        return None;
     }
     if base_strength + base_health + base_intelligence + base_wisdom + base_agility != 5 {
-        return;
+        return None;
     }
     let base_strength = match class {
         PlayerClass::Knight => 18,
@@ -165,12 +165,26 @@ fn create_character(database: &Database, socket_writer: &SocketWriter, user_id: 
         PlayerClass::Archer => 2,
     };
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    rt.block_on(async move {
-        query!("
+    let player_id = rt.block_on(async move {
+        query_scalar!("
         INSERT INTO players 
         (user_id, name, class, specialty, level, base_strength, base_health, base_intelligence, base_wisdom, base_agility, face, hair, x, y, z, weapon_index, shield_index, helmet_index, chest_index, shorts_index, gloves_index, boots_index, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, experience, rage) 
         values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
         ", user_id, name, class, 1, 1, base_strength, base_health, base_intelligence, base_wisdom, base_agility, face, hair, 267701, 242655, 19630, 0, 0, 0, 0, 0, 0, 0, 1000, 2000, 1000, 2000, 0, 0)
+        .fetch_one(&database.connection).await.unwrap()
+    }) as u32;
+    Some(player_id)
+}
+
+fn create_item(database: &Database, player_id: u32, index: u16, quantity: u32) {
+    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+    rt.block_on(async move {
+        query!("
+        INSERT INTO items 
+        (player_id, item_index, prefix, quantity, maximum_endurance, current_endurance, physical_attack_talisman, magical_attack_talisman, talisman_of_accuracy, talisman_of_defence, upgrade_level, upgrade_rate) 
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ", player_id, index, 0, quantity, 0, 0, 0, 0, 0, 0, 0, 0)
         .execute(&database.connection).await.unwrap();
     });
 }
@@ -206,7 +220,7 @@ fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity
 
 fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, &CreateCharacter, &SocketWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
-        create_character(
+        if let Some(player_id) = create_character(
             &database, 
             &socket_writer, 
             user.id, 
@@ -219,7 +233,10 @@ fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, 
             client_packet.face, 
             client_packet.hair, 
             client_packet.class
-        );
+        ) {
+            create_item(&database, player_id, 1, 100);
+            create_item(&database, player_id, 47, 100);
+        }
         list_characters(&database, &socket_writer, user.id);
         list_deleted_characters(&database, &socket_writer, user.id);
         commands.entity(entity).remove::<CreateCharacter>();
