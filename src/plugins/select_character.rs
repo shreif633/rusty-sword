@@ -1,7 +1,19 @@
 use bevy::prelude::*;
 use sqlx::{types::chrono::NaiveDateTime, query};
-use crate::{packets::{client::select_character::SelectCharacter, server::{player_information::PlayerInformation, player_extra_agility::PlayerExtraAgility, player_extra_wisdom::PlayerExtraWisdom, player_extra_intelligence::PlayerExtraIntelligence, player_extra_strength::PlayerExtraStrength, player_extra_health::PlayerExtraHealth}}, framework::database::Database};
-use super::{character_selection::User, player_movement::{Position, PreviousPosition}, tcp_server::SocketWriter, inventory::{Weapon, OldWeapon}};
+use crate::framework::database::Database;
+use crate::responses::player_extra_health::PlayerExtraHealthResponse;
+use crate::responses::player_extra_strength::PlayerExtraStrengthResponse;
+use crate::responses::player_extra_intelligence::PlayerExtraIntelligenceResponse;
+use crate::responses::player_extra_wisdom::PlayerExtraWisdomResponse;
+use crate::responses::player_extra_agility::PlayerExtraAgilityResponse;
+use crate::responses::player_information::PlayerInformationResponse;
+use crate::requests::select_character::SelectCharacterRequest;
+use super::inventory::Weapon;
+use super::inventory::OldWeapon;
+use super::tcp_server::SocketWriter;
+use super::player_movement::PreviousPosition;
+use super::player_movement::Position;
+use super::character_selection::User;
 
 pub struct SelectCharacterPlugin;
 
@@ -226,7 +238,7 @@ fn query_player(database: &Database, user_id: u32, character_id: u32) -> Option<
     }
 }
 
-fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, &SelectCharacter)>, database: Res<Database>) {
+fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, &SelectCharacterRequest)>, database: Res<Database>) {
     for (entity, user, client_packet) in &query {
         if let Some(player_row) = query_player(&database, user.id, client_packet.character_id) {
             commands.entity(entity).insert(Player { 
@@ -317,14 +329,14 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
                 item: None 
             });
         }
-        commands.entity(entity).remove::<SelectCharacter>();
+        commands.entity(entity).remove::<SelectCharacterRequest>();
     }
 }
 
 fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraPoints, &FinalPoints, &PhysicalAttack, &MagicalAttack, &CurrentHealthPoints, &MaximumHealthPoints, &CurrentMagicPoints, &MaximumMagicPoints, &Rage, &Experience, &SocketWriter)>) {
     for (player_added, job, base_points, extra_points, final_points, physical_attack, magical_attack, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, rage, experience, socket_writer) in &query {
         if player_added {
-            let player_information = PlayerInformation { 
+            let player_information = PlayerInformationResponse { 
                 specialization: job.specialty, 
                 unknown1: vec![0, 0], 
                 contribution: 9, 
@@ -358,7 +370,7 @@ fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraP
             };
             socket_writer.write(&mut (&player_information).into());
 
-            let player_extra_health = PlayerExtraHealth { 
+            let player_extra_health = PlayerExtraHealthResponse { 
                 extra_health: extra_points.extra_health, 
                 current_health_points: current_health_points.current_health_points, 
                 maximum_health_points: maximum_health_points.maximum_health_points, 
@@ -366,7 +378,7 @@ fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraP
             };
             socket_writer.write(&mut (&player_extra_health).into());
 
-            let player_extra_strength = PlayerExtraStrength { 
+            let player_extra_strength = PlayerExtraStrengthResponse { 
                 extra_strength: extra_points.extra_strength, 
                 on_target_point: final_points.on_target_point, 
                 minimum_physical_attack: physical_attack.minimum_physical_attack, 
@@ -374,7 +386,7 @@ fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraP
             };
             socket_writer.write(&mut (&player_extra_strength).into());
 
-            let player_extra_intelligence = PlayerExtraIntelligence { 
+            let player_extra_intelligence = PlayerExtraIntelligenceResponse { 
                 extra_intelligence: extra_points.extra_intelligence, 
                 minimum_magical_attack: magical_attack.minimum_magical_attack, 
                 maximum_magical_attack: magical_attack.maximum_magical_attack, 
@@ -384,7 +396,7 @@ fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraP
             };
             socket_writer.write(&mut (&player_extra_intelligence).into());
 
-            let player_extra_wisdom = PlayerExtraWisdom { 
+            let player_extra_wisdom = PlayerExtraWisdomResponse { 
                 extra_wisdom: extra_points.extra_wisdom, 
                 current_magic_points: current_magic_points.current_magic_points, 
                 maximum_magic_points: maximum_magic_points.maximum_magic_points, 
@@ -394,7 +406,7 @@ fn character_information(query: Query<(Added<Player>, &Job, &BasePoints, &ExtraP
             };
             socket_writer.write(&mut (&player_extra_wisdom).into());
 
-            let player_extra_agility = PlayerExtraAgility {
+            let player_extra_agility = PlayerExtraAgilityResponse {
                 extra_agility: extra_points.extra_agility, 
                 on_target_point: final_points.on_target_point, 
                 evasion: final_points.evasion, 

@@ -1,12 +1,13 @@
 use clap::Parser;
 use dotenvy::dotenv;
 
-mod packets;
 mod framework;
+mod requests;
+mod responses;
+mod plugins;
 
 mod sniffer;
 mod server;
-mod plugins;
 mod sandbox;
 
 #[derive(Parser, Debug)]
