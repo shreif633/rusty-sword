@@ -1,11 +1,15 @@
 use bevy::prelude::*;
+use crate::components::appearence::Appearence;
+use crate::components::job::Job;
+use crate::components::player::Player;
+use crate::components::position::{Coordinate, Position};
+use crate::components::walking::Walking;
 use crate::responses::player_stop_walking::PlayerStopWalkingResponse;
 use crate::responses::player_walk::PlayerWalkResponse;
 use crate::responses::player_appear::PlayerAppearResponse;
 use crate::responses::player_position::PlayerPositionResponse;
 use crate::requests::player_stop_walking::PlayerStopWalkingRequest;
 use crate::requests::player_walk::PlayerWalkRequest;
-use super::select_character::{Player, Appearence, Job};
 use super::tcp_server::SocketWriter;
 
 pub struct PlayerMovementPlugin;
@@ -21,41 +25,6 @@ impl Plugin for PlayerMovementPlugin {
 }
 
 #[derive(Component)]
-pub struct Position {
-    pub x: u32,
-    pub y: u32,
-    pub z: u32,
-}
-
-impl Position {
-    pub fn calculate_distance<T: Coordinate>(&self, b: &T) -> u32 {
-        let (bx, by) = b.get_xy();
-        let x_diff = self.x as f64 - bx as f64;
-        let y_diff = self.y as f64 - by as f64;
-        // Euclidean distance formula: sqrt((x2 - x1)^2 + (y2 - y1)^2)
-        ((x_diff.powi(2) + y_diff.powi(2)) as f64).sqrt().round() as u32
-    }
-
-    pub fn is_in_range<T: Coordinate>(&self, b: &T, range: u32) -> bool {
-        self.calculate_distance(b) < range
-    }
-
-    pub fn is_in_sight<T: Coordinate>(&self, b: &T) -> bool {
-        self.is_in_range(b, 900)
-    }
-}
-
-impl Coordinate for &Position {
-    fn get_xy(&self) -> (u32, u32) {
-        (self.x, self.y)
-    }
-}
-
-pub trait Coordinate {
-    fn get_xy(&self) -> (u32, u32);
-}
-
-#[derive(Component)]
 pub struct PreviousPosition {
     pub x: u32,
     pub y: u32,
@@ -66,14 +35,6 @@ impl Coordinate for &PreviousPosition {
     fn get_xy(&self) -> (u32, u32) {
         (self.x, self.y)
     }
-}
-
-#[derive(Component, Debug)]
-pub struct Walking {
-    done: bool,
-    delta_x: u8,
-    delta_y: u8,
-    delta_z: u8,
 }
 
 fn handle_position_added(query: Query<(Added<Position>, &Player, &Job, &Position, &Appearence, &SocketWriter)>) {

@@ -1,5 +1,22 @@
 use bevy::prelude::*;
 use sqlx::{types::chrono::NaiveDateTime, query};
+use crate::components::appearence::Appearence;
+use crate::components::base_points::BasePoints;
+use crate::components::current_health_points::CurrentHealthPoints;
+use crate::components::current_magic_points::CurrentMagicPoints;
+use crate::components::equipped_weapon::EquippedWeapon;
+use crate::components::experience::Experience;
+use crate::components::extra_points::ExtraPoints;
+use crate::components::final_points::FinalPoints;
+use crate::components::job::Job;
+use crate::components::magical_attack::MagicalAttack;
+use crate::components::maximum_health_points::MaximumHealthPoints;
+use crate::components::maximum_magic_points::MaximumMagicPoints;
+use crate::components::physical_attack::PhysicalAttack;
+use crate::components::player::Player;
+use crate::components::position::Position;
+use crate::components::rage::Rage;
+use crate::components::user::User;
 use crate::framework::database::Database;
 use crate::responses::player_extra_health::PlayerExtraHealthResponse;
 use crate::responses::player_extra_strength::PlayerExtraStrengthResponse;
@@ -8,12 +25,9 @@ use crate::responses::player_extra_wisdom::PlayerExtraWisdomResponse;
 use crate::responses::player_extra_agility::PlayerExtraAgilityResponse;
 use crate::responses::player_information::PlayerInformationResponse;
 use crate::requests::select_character::SelectCharacterRequest;
-use super::inventory::Weapon;
 use super::inventory::OldWeapon;
 use super::tcp_server::SocketWriter;
 use super::player_movement::PreviousPosition;
-use super::player_movement::Position;
-use super::character_selection::User;
 
 pub struct SelectCharacterPlugin;
 
@@ -22,105 +36,6 @@ impl Plugin for SelectCharacterPlugin {
         app.add_systems(Update, handle_select_character);
         app.add_systems(Update, character_information);
     }
-}
-
-#[derive(Component)]
-pub struct Player {
-    pub id: u32,
-}
-
-#[derive(Component)]
-pub struct Appearence {
-    pub name: String,
-    pub face: u8,
-    pub hair: u8,
-    pub weapon_index: u16, 
-    pub shield_index: u16, 
-    pub helmet_index: u16, 
-    pub chest_index: u16, 
-    pub shorts_index: u16, 
-    pub gloves_index: u16, 
-    pub boots_index: u16, 
-}
-
-#[derive(Component)]
-pub struct Job {
-    pub level: u8,
-    pub class: u8,
-    pub specialty: u8,
-}
-
-#[derive(Component)]
-struct BasePoints {
-    pub base_strength: u16, 
-    pub base_health: u16, 
-    pub base_intelligence: u16, 
-    pub base_wisdom: u16,
-    pub base_agility: u16,  
-}
-
-#[derive(Component)]
-struct ExtraPoints {
-    pub extra_strength: u16, 
-    pub extra_health: u16, 
-    pub extra_intelligence: u16, 
-    pub extra_wisdom: u16,
-    pub extra_agility: u16,  
-}
-
-#[derive(Component)]
-struct FinalPoints {
-    pub on_target_point: u16, 
-    pub evasion: u16, 
-    pub defense: u16, 
-    pub absorption: u16, 
-    pub fire_resistence: u16, 
-    pub ice_resistence: u16, 
-    pub lighning_resistence: u16,
-    pub curse_resistence: u16, 
-    pub non_elemental_resistence: u16,
-}
-
-#[derive(Component)]
-struct Rage {
-    pub rage: u32,
-}
-
-#[derive(Component)]
-struct Experience {
-    pub experience: u32,
-}
-
-#[derive(Component)]
-struct PhysicalAttack {
-    pub minimum_physical_attack: u16,
-    pub maximum_physical_attack: u16,
-}
-
-#[derive(Component)]
-struct MagicalAttack {
-    pub minimum_magical_attack: u16,
-    pub maximum_magical_attack: u16,
-}
-
-#[derive(Component)]
-struct CurrentHealthPoints {
-    current_health_points: u32
-}
-
-#[derive(Component)]
-struct MaximumHealthPoints {
-    maximum_health_points: u32
-}
-
-#[derive(Component)]
-struct CurrentMagicPoints {
-    current_magic_points: u16
-}
-
-#[derive(Component)]
-struct MaximumMagicPoints {
-    maximum_magic_points: u16
 }
 
 struct PlayerRow {
@@ -322,7 +237,7 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
                 gloves_index: player_row.gloves_index,
                 boots_index: player_row.boots_index,
             });
-            commands.entity(entity).insert(Weapon {
+            commands.entity(entity).insert(EquippedWeapon {
                 item: None 
             });
             commands.entity(entity).insert(OldWeapon {

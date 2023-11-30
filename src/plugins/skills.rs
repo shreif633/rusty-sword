@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use sqlx::query;
-use crate::{framework::database::Database, responses::player_skills::PlayerSkillsResponse};
-use super::{tcp_server::SocketWriter, select_character::Player};
+use crate::{framework::database::Database, responses::player_skills::PlayerSkillsResponse, components::player::Player};
+use super::tcp_server::SocketWriter;
 
 pub struct SkillsPlugin;
 

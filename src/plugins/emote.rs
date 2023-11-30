@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use crate::components::player::Player;
+use crate::components::position::Position;
+use crate::components::walking::Walking;
 use crate::requests::emote::EmoteRequest;
 use crate::responses::emote::EmoteResponse;
-use super::select_character::Player;
-use super::player_movement::{Position, Walking};
 use super::tcp_server::SocketWriter;
 
 pub struct EmotePlugin;

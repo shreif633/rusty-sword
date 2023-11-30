@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use pwhash::unix;
 use sqlx::{query, query_scalar, types::chrono::Local};
+use crate::components::user::User;
 use crate::framework::database::Database;
 use crate::responses::list_player_deleted_characters::{PlayerDeletedCharacter, ListPlayerDeletedCharactersResponse};
 use crate::responses::character_creation_error::CharacterCreationErrorResponse;
@@ -21,11 +22,6 @@ impl Plugin for CharacterSelectionPlugin {
         app.add_systems(Update, handle_restore_deleted_character);
         app.add_systems(Update, handle_create_character);
     }
-}
-
-#[derive(Component)]
-pub struct User {
-    pub id: u32,
 }
 
 pub fn authenticate(database: &Database, socket_writer: &SocketWriter, username: &str, password: &str) -> Option<u32> {

@@ -1,12 +1,15 @@
 use bevy::prelude::*;
 use sqlx::query;
+use crate::components::equipped_weapon::EquippedWeapon;
+use crate::components::player::Player;
+use crate::components::position::Position;
 use crate::responses::equip_item::EquipItemResponse;
 use crate::responses::inventory::InventoryResponse;
 use crate::{framework::database::Database, responses::unequip_item::UnequipItemResponse};
 use crate::requests::use_item::UseItemRequest;
 use crate::requests::unequip_item::UnequipItemRequest;
 use crate::requests::equip_item::EquipItemRequest;
-use super::{tcp_server::SocketWriter, select_character::Player, player_movement::Position};
+use super::tcp_server::SocketWriter;
 
 pub struct InventoryPlugin;
 
@@ -135,16 +138,11 @@ fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &
 }
 
 #[derive(Component)]
-pub struct Weapon {
-    pub item: Option<Entity>
-}
-
-#[derive(Component)]
 pub struct OldWeapon {
     pub item: Option<Entity>
 }
 
-fn equip_item(mut commands: Commands, mut query: Query<(Entity, &EquipItemRequest, &mut Weapon)>, items_query: Query<(Entity, &PlayerOwner)>) {
+fn equip_item(mut commands: Commands, mut query: Query<(Entity, &EquipItemRequest, &mut EquippedWeapon)>, items_query: Query<(Entity, &PlayerOwner)>) {
     for (entity, equip_item, mut weapon) in query.iter_mut() {
         for (weapon_entity, player_owner) in &items_query {
             if weapon_entity.index() == equip_item.item_id {
@@ -161,15 +159,11 @@ fn equip_item(mut commands: Commands, mut query: Query<(Entity, &EquipItemReques
     }
 }
 
-fn unequip_item(mut commands: Commands, mut query: Query<(Entity, &UnequipItemRequest, &mut Weapon)>, items_query: Query<Entity>) {
+fn unequip_item(mut commands: Commands, mut query: Query<(Entity, &UnequipItemRequest, &mut EquippedWeapon)>, items_query: Query<Entity>) {
     for (entity, unequip_item, mut weapon) in query.iter_mut() {
-        println!("UNEQUIP {:?}", unequip_item);
         for weapon_entity in &items_query {
             if weapon_entity.index() == unequip_item.item_id {
-                // if weapon.item.is_some() {
-                    println!("SHOULD UNEQUIP");
-                    weapon.item = None;
-                // }
+                weapon.item = None;
             }
         }
         commands.entity(entity).remove::<UnequipItemRequest>();
@@ -183,7 +177,7 @@ fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>) {
     }
 }
 
-fn broadcast_weapon_change(mut query: Query<(Changed<Weapon>, &Player, &Weapon, &mut OldWeapon, &Position)>, players_query: Query<(&Position, &SocketWriter)>) {
+fn broadcast_weapon_change(mut query: Query<(Changed<EquippedWeapon>, &Player, &EquippedWeapon, &mut OldWeapon, &Position)>, players_query: Query<(&Position, &SocketWriter)>) {
     for (changed, player, weapon, mut old_weapon, position) in query.iter_mut() {
         if changed {
             if let Some(item) = weapon.item {

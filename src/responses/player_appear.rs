@@ -1,4 +1,8 @@
-use crate::{framework::packet::Packet, plugins::{select_character::{Player, Job, Appearence}, player_movement::Position}};
+use crate::components::appearence::Appearence;
+use crate::components::job::Job;
+use crate::components::player::Player;
+use crate::components::position::Position;
+use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 50;
 

@@ -1,7 +1,8 @@
 use bevy::prelude::*;
-use crate::responses::chat_message::ChatMessageResponse;
+use crate::components::appearence::Appearence;
+use crate::{responses::chat_message::ChatMessageResponse, components::position::Position};
 use crate::requests::chat_message::ChatMessageRequest;
-use super::{tcp_server::SocketWriter, player_movement::Position, select_character::Appearence};
+use super::tcp_server::SocketWriter;
 
 pub struct ChatPlugin;
 
