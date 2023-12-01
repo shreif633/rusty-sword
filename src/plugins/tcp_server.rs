@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use std::sync::{Mutex, Arc};
 use tokio::sync::mpsc::Sender;
-
-use crate::{packets::client::ClientPacket, framework::packet::Packet};
+use crate::framework::packet::Packet;
+use crate::requests::ClientPacket;
 
 pub struct TcpServerPlugin;
 

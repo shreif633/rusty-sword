@@ -1,6 +1,5 @@
 use bevy::prelude::*;
-use crate::framework::database::Database;
-use super::{player_movement::Position, select_character::Player};
+use crate::{framework::database::Database, components::{player::Player, position::Position}};
 use sqlx::query;
 
 pub struct PersistPlayerPlugin;

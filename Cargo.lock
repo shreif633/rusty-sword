@@ -2589,22 +2589,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kal-packet-sniffer"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "bevy",
- "clap",
- "dashmap",
- "dotenvy",
- "flume 0.11.0",
- "futures",
- "pwhash",
- "sqlx",
- "tokio",
-]
-
-[[package]]
 name = "khronos-egl"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3617,6 +3601,22 @@ dependencies = [
  "libc",
  "linux-raw-sys",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "rusty-sword"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bevy",
+ "clap",
+ "dashmap",
+ "dotenvy",
+ "flume 0.11.0",
+ "futures",
+ "pwhash",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]
