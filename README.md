@@ -1,5 +1,6 @@
 # Rusty Sword
 This project is composed of multiple tools to deal with a korean game about swords.
+If you mention the game, you lose the game.
 It is written in rust using ECS and Repository Patterns.
 This is rapidly changing and is still experimental.
 
@@ -12,6 +13,10 @@ A server emulator that can be extended with ECS plugins
 A packet sniffer that uses enums to catalog the known packets
 
 `$ cargo run -- --mode sniffer`
+
+hint: use the following command to output the sniffer results to a file
+
+`$ cargo run -- --mode sniffer > file_name.txt`
 
 ## Sword Scripts
 A series of scripts used to help developing as an admin
