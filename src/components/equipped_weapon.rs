@@ -7,7 +7,7 @@ pub struct EquippedWeapon {
 }
 
 impl From<&PlayerRow> for EquippedWeapon {
-    fn from(player_row: &PlayerRow) -> Self {
+    fn from(_player_row: &PlayerRow) -> Self {
         EquippedWeapon {
             item: None 
         }

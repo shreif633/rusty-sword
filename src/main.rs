@@ -3,6 +3,8 @@ use dotenvy::dotenv;
 
 mod bundles;
 mod components;
+mod configs;
+mod enums;
 mod framework;
 mod repositories;
 mod requests;

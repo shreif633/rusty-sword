@@ -1,0 +1,29 @@
+[monster]
+name = "Demon Vulgar"
+index = 1
+level = 1
+
+[attributes]
+range = 20
+physical_attack = 200
+defense = 10
+
+[ai]
+type = "agressive"
+sight = 240
+
+[rewards]
+experience = 2
+
+[[drop]]
+index = 20
+prefix = 0
+chance = 10.0
+quest = 13
+
+[[spawn]]
+bottom_x = 123
+bottom_y = 123
+top_x = 125
+top_y = 125
+quantity = 30

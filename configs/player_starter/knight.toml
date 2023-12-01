@@ -1,0 +1,30 @@
+[welcome]
+message = "Player $name has logged for the first time"
+
+[experience]
+experience = 0
+
+[base_points]
+base_strength = 18
+base_health = 16
+base_intelligence = 8
+base_wisdom = 8
+base_agility = 10
+
+[position]
+map = 0
+x = 258386
+y = 257663
+z = 15924
+
+[[item]]
+index = 1
+quantity = 1
+prefix = 0
+bound = true
+
+[[item]]
+index = 47
+quantity = 1
+prefix = 0
+bound = true

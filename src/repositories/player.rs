@@ -1,5 +1,6 @@
 use sqlx::{query, query_scalar};
 use sqlx::types::chrono::{NaiveDateTime, Local};
+use crate::enums::player_class::PlayerClass;
 use crate::framework::database::Database;
 
 pub struct PlayerRow {
@@ -142,14 +143,14 @@ pub fn find_player_exists_by_name(database: &Database, name: &str) -> bool {
 pub fn count_user_players(database: &Database, user_id: u32) -> i32 {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     rt.block_on(async move {
-        query_scalar!("SELECT COUNT(*) FROM players WHERE user_id = ? AND DELETED_AT is NULL", user_id).fetch_one(&database.connection).await.unwrap()
+        query_scalar!("SELECT COUNT(*) FROM players WHERE user_id = ? AND DELETED_AT IS NULL", user_id).fetch_one(&database.connection).await.unwrap()
     })
 }
 
 pub fn find_all_deleted_user_players(database: &Database, user_id: u32) -> Vec<PlayerRow> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let rows = rt.block_on(async move {
-        query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NULL", user_id).fetch_all(&database.connection).await.unwrap()
+        query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NOT NULL", user_id).fetch_all(&database.connection).await.unwrap()
     });
     rows.iter().map(|row| {
         PlayerRow { 
@@ -208,7 +209,7 @@ pub fn find_all_deleted_user_players(database: &Database, user_id: u32) -> Vec<P
 pub fn find_all_user_players(database: &Database, user_id: u32) -> Vec<PlayerRow> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let rows = rt.block_on(async move {
-        query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NOT NULL", user_id).fetch_all(&database.connection).await.unwrap()
+        query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NULL", user_id).fetch_all(&database.connection).await.unwrap()
     });
     rows.iter().map(|row| {
         PlayerRow { 
@@ -262,4 +263,37 @@ pub fn find_all_user_players(database: &Database, user_id: u32) -> Vec<PlayerRow
             non_elemental_resistence: row.non_elemental_resistence.try_into().unwrap(), 
         }
     }).collect()
+}
+
+pub struct PlayerCreateChangeset<'a> {
+    pub user_id: u32,
+    pub name: &'a str,
+    pub class: PlayerClass,
+    pub experience: u32,
+    pub base_strength: u16,
+    pub base_health: u16,
+    pub base_intelligence: u16,
+    pub base_wisdom: u16,
+    pub base_agility: u16,
+    pub face: u8,
+    pub hair: u8,
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+    pub map: u8
+}
+
+pub fn create_player(database: &Database, changeset: &PlayerCreateChangeset) -> Option<u32> {
+    let class = u8::from(changeset.class);
+    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+    let player_id = rt.block_on(async move {
+        query_scalar!("
+        INSERT INTO players 
+        (user_id, name, class, specialty, level, base_strength, base_health, base_intelligence, base_wisdom, base_agility, face, hair, x, y, z, weapon_index, shield_index, helmet_index, chest_index, shorts_index, gloves_index, boots_index, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, experience, rage) 
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+        ", changeset.user_id, changeset.name, class, 1, changeset.experience, changeset.base_strength, changeset.base_health, changeset.base_intelligence, changeset.base_wisdom, changeset.base_agility, changeset.face, changeset.hair, changeset.x, changeset.y, changeset.z, 0, 0, 0, 0, 0, 0, 0, 1000, 2000, 1000, 2000, 0, 0)
+        .fetch_one(&database.connection).await.unwrap()
+    }) as u32;
+    Some(player_id)
 }

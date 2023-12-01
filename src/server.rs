@@ -1,4 +1,5 @@
 use std::sync::{Mutex, Arc};
+use crate::configs::player_starter;
 use crate::plugins::select_server::ServerSelectPlugin;
 use crate::framework::database::Database;
 use crate::plugins::skills::SkillsPlugin;
@@ -18,6 +19,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
     tokio::spawn(async move {
         let socket_queue = SocketQueue { queue };
         let database = Database::connect().await;
+        let player_starter_config = player_starter::load();
         App::new()
             .add_plugins(MinimalPlugins)
             .add_plugins(ServerSelectPlugin)
@@ -31,6 +33,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(InventoryPlugin)
             .add_plugins(SkillsPlugin)
             .insert_resource(socket_queue)
+            .insert_resource(player_starter_config)
             .insert_resource(database)
             .run();
     });

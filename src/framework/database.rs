@@ -1,7 +1,6 @@
-use std::env;
-
-use sqlx::{SqlitePool, Pool, Sqlite};
 use bevy::prelude::*;
+use std::env;
+use sqlx::{SqlitePool, Pool, Sqlite};
 
 #[derive(Resource)]
 pub struct Database {

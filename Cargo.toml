@@ -16,6 +16,8 @@ futures = "0.3.29"
 pwhash = "1.0.0"
 dotenvy = "0.15.7"
 flume = "0.11.0"
+toml = "0.8.8"
+serde = { version = "1.0.193", features = ["derive"] }
 
 [env]
 RUST_BACKTRACE = "1"

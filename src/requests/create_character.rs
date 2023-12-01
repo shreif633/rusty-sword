@@ -1,15 +1,8 @@
-use crate::framework::packet::Packet;
 use bevy::prelude::*;
+use crate::enums::player_class::PlayerClass;
+use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 5;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[repr(u8)]
-pub enum PlayerClass {
-    Knight = 0,
-    Mage = 1,
-    Archer = 2,
-}
 
 #[derive(Component, Debug, Clone)]
 pub struct CreateCharacterRequest {
@@ -27,12 +20,7 @@ pub struct CreateCharacterRequest {
 impl From<&mut Packet> for CreateCharacterRequest {
     fn from(packet: &mut Packet) -> Self {
         let name = packet.get_string();
-        let class = packet.get_u8();
-        let class = match class {
-            0 => PlayerClass::Knight,
-            1 => PlayerClass::Mage,
-            _ => PlayerClass::Archer,
-        };
+        let class = PlayerClass::from(packet.get_u8());
         let base_strength = packet.get_u8();
         let base_health = packet.get_u8();
         let base_intelligence = packet.get_u8();

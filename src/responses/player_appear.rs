@@ -3,16 +3,9 @@ use crate::components::job::Job;
 use crate::components::player::Player;
 use crate::components::position::Position;
 use crate::framework::packet::Packet;
+use crate::enums::player_class::PlayerClass;
 
 pub const HEADER: u8 = 50;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[repr(u8)]
-pub enum PlayerClass {
-    Knight = 0,
-    Mage = 1,
-    Archer = 2,
-}
 
 #[derive(Debug)]
 pub struct PlayerAppearResponse {
@@ -42,11 +35,7 @@ impl PlayerAppearResponse {
         PlayerAppearResponse { 
             player_id: player.id, 
             name: appearence.name.clone(), 
-            class: match job.class {
-                0 => PlayerClass::Knight,
-                1 => PlayerClass::Mage,
-                _ => PlayerClass::Archer,
-            }, 
+            class: job.class, 
             is_current_player,
             x: position.x, 
             y: position.y, 
@@ -105,17 +94,9 @@ impl From<&PlayerAppearResponse> for Packet {
         packet.write_u32(val.player_id);
         packet.write_string(&val.name);
         if val.is_current_player {
-            match val.class {
-                PlayerClass::Knight => packet.write_u8(128),
-                PlayerClass::Mage => packet.write_u8(129),
-                PlayerClass::Archer => packet.write_u8(130),
-            };
+            packet.write_u8(u8::from(val.class) + 128);
         } else {
-            match val.class {
-                PlayerClass::Knight => packet.write_u8(0),
-                PlayerClass::Mage => packet.write_u8(1),
-                PlayerClass::Archer => packet.write_u8(2),
-            };
+            packet.write_u8(val.class.into());
         }
         packet.write_u32(val.x);
         packet.write_u32(val.y);
