@@ -17,8 +17,8 @@ pub struct Item {
     pub upgrade_rate: u8
 }
 
-impl Item {
-    pub fn new(item_row: &ItemRow) -> Self {
+impl From<&ItemRow> for Item {
+    fn from(item_row: &ItemRow) -> Self {
         Item { 
             id: item_row.id, 
             index: item_row.index, 

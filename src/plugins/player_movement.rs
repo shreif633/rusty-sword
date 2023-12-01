@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use crate::components::appearence::Appearence;
 use crate::components::job::Job;
 use crate::components::player::Player;
-use crate::components::position::{Coordinate, Position};
+use crate::components::position::Position;
+use crate::components::previous::Previous;
 use crate::components::walking::Walking;
 use crate::responses::player_stop_walking::PlayerStopWalkingResponse;
 use crate::responses::player_walk::PlayerWalkResponse;
@@ -24,19 +25,6 @@ impl Plugin for PlayerMovementPlugin {
     }
 }
 
-#[derive(Component)]
-pub struct PreviousPosition {
-    pub x: u32,
-    pub y: u32,
-    pub z: u32,
-}
-
-impl Coordinate for &PreviousPosition {
-    fn get_xy(&self) -> (u32, u32) {
-        (self.x, self.y)
-    }
-}
-
 fn handle_position_added(query: Query<(Added<Position>, &Player, &Job, &Position, &Appearence, &SocketWriter)>) {
     for (added_position, player, job, position, appearence, socket_writer) in &query {
         if added_position {
@@ -48,12 +36,12 @@ fn handle_position_added(query: Query<(Added<Position>, &Player, &Job, &Position
     }
 }
 
-fn handle_position_change(moved_query: Query<(&Player, Changed<Position>, &Job, &PreviousPosition, &Position, &Appearence, &SocketWriter)>, players_query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter)>) {
+fn handle_position_change(moved_query: Query<(&Player, Changed<Position>, &Job, &Previous<Position>, &Position, &Appearence, &SocketWriter)>, players_query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter)>) {
     for (moved_player, moved_position_changed, moved_job, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
         if moved_position_changed {
             for (player, job, position, appearence, socket_writer) in &players_query {
                 if moved_player.id != player.id {
-                    if !position.is_in_sight(&moved_previous_position) {
+                    if !position.is_in_sight(&moved_previous_position.entity) {
                         if position.is_in_sight(&moved_position) {
                             let player_appear = PlayerAppearResponse::new(&moved_player, &moved_job, &moved_position, &moved_appearence, false);
                             socket_writer.write(&mut (&player_appear).into());
@@ -96,10 +84,10 @@ fn handle_player_walking(mut commands: Commands, moved_query: Query<(Entity, &Pl
     }
 }
 
-fn update_position(previous_position: &mut PreviousPosition, position: &mut Position, delta_x: u8, delta_y: u8, delta_z: u8) {
-    previous_position.x = position.x;
-    previous_position.y = position.y;
-    previous_position.z = position.z;
+fn update_position(previous_position: &mut Previous<Position>, position: &mut Position, delta_x: u8, delta_y: u8, delta_z: u8) {
+    previous_position.entity.x = position.x;
+    previous_position.entity.y = position.y;
+    previous_position.entity.z = position.z;
     let delta_x: u32 = delta_x.try_into().unwrap();
     if delta_x > 128 { 
         position.x -= 256 - delta_x;
@@ -120,7 +108,7 @@ fn update_position(previous_position: &mut PreviousPosition, position: &mut Posi
     }
 }
 
-fn handle_player_walk(mut commands: Commands, mut query: Query<(Entity, &PlayerWalkRequest, &mut PreviousPosition, &mut Position)>) {
+fn handle_player_walk(mut commands: Commands, mut query: Query<(Entity, &PlayerWalkRequest, &mut Previous<Position>, &mut Position)>) {
     for (entity, client_packet, mut previous_position, mut position) in query.iter_mut() {
         update_position(&mut previous_position, &mut position, client_packet.delta_x, client_packet.delta_y, client_packet.delta_z);
         commands.entity(entity).insert(Walking { done: false, delta_x: client_packet.delta_x, delta_y: client_packet.delta_y, delta_z: client_packet.delta_z });
@@ -128,7 +116,7 @@ fn handle_player_walk(mut commands: Commands, mut query: Query<(Entity, &PlayerW
     }
 }
 
-fn handle_player_stop_walking(mut commands: Commands, mut query: Query<(Entity, &PlayerStopWalkingRequest, &mut PreviousPosition, &mut Position)>) {
+fn handle_player_stop_walking(mut commands: Commands, mut query: Query<(Entity, &PlayerStopWalkingRequest, &mut Previous<Position>, &mut Position)>) {
     for (entity, client_packet, mut previous_position, mut position) in query.iter_mut() {
         update_position(&mut previous_position, &mut position, client_packet.delta_x, client_packet.delta_y, client_packet.delta_z);
         commands.entity(entity).insert(Walking { done: true, delta_x: client_packet.delta_x, delta_y: client_packet.delta_y, delta_z: client_packet.delta_z });

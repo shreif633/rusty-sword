@@ -1,6 +1,7 @@
 use clap::Parser;
 use dotenvy::dotenv;
 
+mod bundles;
 mod components;
 mod framework;
 mod repositories;

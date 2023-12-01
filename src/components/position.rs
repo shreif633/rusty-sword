@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::repositories::player::PlayerRow;
 
 #[derive(Component)]
 pub struct Position {
@@ -7,30 +8,29 @@ pub struct Position {
     pub z: u32,
 }
 
+impl From<&PlayerRow> for Position {
+    fn from(player_row: &PlayerRow) -> Self {
+        Position { 
+            x: player_row.x, 
+            y: player_row.y, 
+            z: player_row.z
+        }
+    }
+}
+
 impl Position {
-    pub fn calculate_distance<T: Coordinate>(&self, b: &T) -> u32 {
-        let (bx, by) = b.get_xy();
-        let x_diff = self.x as f64 - bx as f64;
-        let y_diff = self.y as f64 - by as f64;
+    pub fn calculate_distance(&self, other: &Position) -> u32 {
+        let x_diff = self.x as f64 - other.x as f64;
+        let y_diff = self.y as f64 - other.y as f64;
         // Euclidean distance formula: sqrt((x2 - x1)^2 + (y2 - y1)^2)
         ((x_diff.powi(2) + y_diff.powi(2)) as f64).sqrt().round() as u32
     }
 
-    pub fn is_in_range<T: Coordinate>(&self, b: &T, range: u32) -> bool {
-        self.calculate_distance(b) < range
+    pub fn is_in_range(&self, other: &Position, range: u32) -> bool {
+        self.calculate_distance(other) < range
     }
 
-    pub fn is_in_sight<T: Coordinate>(&self, b: &T) -> bool {
-        self.is_in_range(b, 900)
+    pub fn is_in_sight(&self, other: &Position) -> bool {
+        self.is_in_range(other, 900)
     }
-}
-
-impl Coordinate for &Position {
-    fn get_xy(&self) -> (u32, u32) {
-        (self.x, self.y)
-    }
-}
-
-pub trait Coordinate {
-    fn get_xy(&self) -> (u32, u32);
 }

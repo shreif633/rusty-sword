@@ -41,7 +41,8 @@ A series of scripts used to help developing as an admin
 - packets sent from the server
 - must implement into and from packet
 - must implement new
-- can be aware of components and receive arbitrary scalar arguments but cannot be aware of anything else
+- can be aware of components and bundle and receive arbitrary scalar arguments but cannot be aware of anything else
+- the exception are login related responses that can be aware of rows
 
 ### rows
 - repositories, only place that can access the database
@@ -52,6 +53,9 @@ A series of scripts used to help developing as an admin
 - components that can be used by any plugin including 3rd party plugins
 - components that are private to a system should not be in this folder
 - should be broken into small components that are the minimum set of information that needs to be accessed on a use case
+
+### bundles
+- prefab that groups components, follows same rules as components
 
 ### framework
 - do not touch this folder

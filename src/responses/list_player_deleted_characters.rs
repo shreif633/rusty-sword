@@ -1,4 +1,4 @@
-use crate::framework::packet::Packet;
+use crate::{framework::packet::Packet, repositories::player::PlayerRow};
 
 pub const HEADER: u8 = 25;
 
@@ -14,6 +14,21 @@ pub struct PlayerDeletedCharacter {
 #[derive(Debug)]
 pub struct ListPlayerDeletedCharactersResponse {
     pub characters: Vec<PlayerDeletedCharacter>,
+}
+
+impl ListPlayerDeletedCharactersResponse {
+    pub fn new(player_rows: &Vec<PlayerRow>) -> Self {
+        let characters = player_rows.iter().map(|player_row| {
+            PlayerDeletedCharacter { 
+                id: player_row.id, 
+                name: player_row.name.clone(), 
+                level: player_row.level, 
+                remaining_days: 8,
+                class: player_row.class, 
+            }
+        }).collect();
+        ListPlayerDeletedCharactersResponse { characters }
+    }
 }
 
 impl From<&mut Packet> for ListPlayerDeletedCharactersResponse {

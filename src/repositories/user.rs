@@ -9,7 +9,7 @@ pub struct UserCreateChangeset<'a> {
     pub email: &'a str
 }
 
-pub fn create_user(database: &Database, changeset: UserCreateChangeset) -> u32 {
+pub fn create_user(database: &Database, changeset: &UserCreateChangeset) -> u32 {
     let password_hash = bcrypt::hash(changeset.password).unwrap();
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     rt.block_on(async move {

@@ -1,4 +1,5 @@
 use crate::framework::packet::Packet;
+use crate::repositories::player::PlayerRow;
 
 pub const HEADER: u8 = 17;
 
@@ -24,6 +25,30 @@ pub struct PlayerCharacter {
 pub struct ListPlayerCharactersResponse {
     pub unknown1: Vec<u8>,
     pub characters: Vec<PlayerCharacter>,
+}
+
+impl ListPlayerCharactersResponse {
+    pub fn new(player_rows: &Vec<PlayerRow>) -> Self {
+        let characters = player_rows.iter().map(|player_row| {
+            PlayerCharacter { 
+            id: player_row.id, 
+            name: player_row.name.clone(), 
+            class: player_row.class, 
+            specialty: player_row.specialty, 
+            level: player_row.level, 
+            unknown1: vec![0, 0, 0, 0],
+            base_strength: player_row.base_strength, 
+            base_health: player_row.base_health, 
+            base_intelligence: player_row.base_intelligence, 
+            base_wisdom: player_row.base_wisdom, 
+            base_agility: player_row.base_agility, 
+            face: player_row.level, 
+            hair: player_row.level,
+            items_indexes: vec![]
+        }
+        }).collect();
+        ListPlayerCharactersResponse { unknown1: vec![0, 0, 0, 0, 0], characters }
+    }
 }
 
 impl From<&mut Packet> for ListPlayerCharactersResponse {

@@ -14,6 +14,7 @@ pub mod maximum_magic_points;
 pub mod physical_attack;
 pub mod player;
 pub mod position;
+pub mod previous;
 pub mod rage;
 pub mod user;
 pub mod walking;

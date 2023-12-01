@@ -41,3 +41,22 @@ pub fn find_all_items_by_player_id(database: &Database, player_id: u32) -> Vec<I
     }
     items
 }
+
+pub struct ItemCreateChangeset {
+    pub player_id: u32,
+    pub index: u16,
+    pub prefix: u8,
+    pub quantity: u32
+}
+
+pub fn create_item(database: &Database, changeset: &ItemCreateChangeset) {
+    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+    rt.block_on(async move {
+        query!("
+        INSERT INTO items 
+        (player_id, item_index, prefix, quantity, maximum_endurance, current_endurance, physical_attack_talisman, magical_attack_talisman, talisman_of_accuracy, talisman_of_defence, upgrade_level, upgrade_rate) 
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ", changeset.player_id, changeset.index, changeset.prefix, changeset.quantity, 0, 0, 0, 0, 0, 0, 0, 0)
+        .execute(&database.connection).await.unwrap();
+    });
+}

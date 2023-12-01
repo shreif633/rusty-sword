@@ -1,11 +1,13 @@
 use bevy::prelude::*;
 use pwhash::unix;
-use sqlx::{query, query_scalar, types::chrono::Local};
+use sqlx::{query_scalar, query};
 use crate::components::user::User;
 use crate::framework::database::Database;
-use crate::responses::list_player_deleted_characters::{PlayerDeletedCharacter, ListPlayerDeletedCharactersResponse};
+use crate::repositories::item::{ItemCreateChangeset, create_item};
+use crate::repositories::player::{delete_user_player_by_id, find_player_exists_by_name, count_user_players, find_all_deleted_user_players, find_all_user_players, restore_user_player_by_id};
+use crate::responses::list_player_deleted_characters::ListPlayerDeletedCharactersResponse;
 use crate::responses::character_creation_error::CharacterCreationErrorResponse;
-use crate::responses::list_player_characters::{PlayerCharacter, ListPlayerCharactersResponse};
+use crate::responses::list_player_characters::ListPlayerCharactersResponse;
 use crate::responses::authentication_error::{AuthenticationErrorResponse, Error};
 use crate::requests::create_character::{PlayerClass, CreateCharacterRequest};
 use crate::requests::restore_deleted_character::RestoreDeletedCharacterRequest;
@@ -47,89 +49,22 @@ pub fn authenticate(database: &Database, socket_writer: &SocketWriter, username:
 }
 
 pub fn list_characters(database: &Database, socket_writer: &SocketWriter, user_id: u32) {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    let rows = rt.block_on(async move {
-        query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NULL", user_id).fetch_all(&database.connection).await.unwrap()
-    });
-    let mut characters: Vec<PlayerCharacter> = vec![];
-    for row in rows {
-        let items_indexes: Vec<u16> = vec![];
-        let character = PlayerCharacter { 
-            id: row.id.try_into().unwrap(), 
-            name: row.name.try_into().unwrap(), 
-            class: row.class.try_into().unwrap(), 
-            specialty: row.specialty.try_into().unwrap(), 
-            level: row.level.try_into().unwrap(), 
-            unknown1: vec![0, 0, 0, 0],
-            base_strength: row.base_strength.try_into().unwrap(), 
-            base_health: row.base_health.try_into().unwrap(), 
-            base_intelligence: row.base_intelligence.try_into().unwrap(), 
-            base_wisdom: row.base_wisdom.try_into().unwrap(), 
-            base_agility: row.base_agility.try_into().unwrap(), 
-            face: row.level.try_into().unwrap(), 
-            hair: row.level.try_into().unwrap(),
-            items_indexes 
-        };
-        characters.push(character);
-    }
-    let list_player_characters = ListPlayerCharactersResponse { unknown1: vec![0, 0, 0, 0, 0], characters };
+    let players = find_all_user_players(database, user_id);
+    let list_player_characters = ListPlayerCharactersResponse::new(&players);
     socket_writer.write(&mut (&list_player_characters).into());
 }
 
 fn list_deleted_characters(database: &Database, socket_writer: &SocketWriter, user_id: u32) {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    let rows = rt.block_on(async move {
-        query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NOT NULL", user_id).fetch_all(&database.connection).await.unwrap()
-    });
-    let mut characters: Vec<PlayerDeletedCharacter> = vec![];
-    for row in rows {
-        let character = PlayerDeletedCharacter { 
-            id: row.id.try_into().unwrap(), 
-            name: row.name.try_into().unwrap(), 
-            level: row.level.try_into().unwrap(), 
-            remaining_days: 8,
-            class: row.class.try_into().unwrap(), 
-        };
-        characters.push(character);
-    }
-    let list_player_characters = ListPlayerDeletedCharactersResponse { characters };
+    let players = find_all_deleted_user_players(database, user_id);
+    let list_player_characters = ListPlayerDeletedCharactersResponse::new(&players);
     socket_writer.write(&mut (&list_player_characters).into());
 }
 
-fn delete_character(database: &Database, user_id: u32, character_id: u32) {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    rt.block_on(async move {
-        let now = Local::now().naive_utc();
-        query!("UPDATE players SET deleted_at = ? WHERE user_id = ? AND id = ?", now, user_id, character_id).execute(&database.connection).await.unwrap()
-    });
-}
-
-fn restore_deleted_character(database: &Database, user_id: u32, character_id: u32) {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    rt.block_on(async move {
-        query!("UPDATE players SET deleted_at = NULL WHERE user_id = ? AND id = ?", user_id, character_id).execute(&database.connection).await.unwrap()
-    });
-}
-
-fn is_name_taken(database: &Database, name: &str) -> bool {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    rt.block_on(async move {
-        query_scalar!("SELECT COUNT(*) FROM players WHERE name = ?", name).fetch_one(&database.connection).await.unwrap()
-    }) > 0
-}
-
-fn get_characters_count(database: &Database, user_id: u32) -> i32 {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    rt.block_on(async move {
-        query_scalar!("SELECT COUNT(*) FROM players WHERE user_id = ? AND DELETED_AT is NULL", user_id).fetch_one(&database.connection).await.unwrap()
-    })
-}
-
 fn create_character(database: &Database, socket_writer: &SocketWriter, user_id: u32, name: &str, base_strength: u8, base_health: u8, base_intelligence: u8, base_wisdom: u8, base_agility: u8, face: u8, hair: u8, class: PlayerClass) -> Option<u32> {
-    if get_characters_count(database, user_id) >= 5 {
+    if count_user_players(database, user_id) >= 5 {
         return None;
     }
-    if is_name_taken(database, name) {
+    if find_player_exists_by_name(database, name) {
         use crate::responses::character_creation_error::Error;
         let character_creation_error = CharacterCreationErrorResponse { error: Error::NameTaken };
         socket_writer.write(&mut (&character_creation_error).into());
@@ -181,18 +116,6 @@ fn create_character(database: &Database, socket_writer: &SocketWriter, user_id: 
     Some(player_id)
 }
 
-fn create_item(database: &Database, player_id: u32, index: u16, quantity: u32) {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-    rt.block_on(async move {
-        query!("
-        INSERT INTO items 
-        (player_id, item_index, prefix, quantity, maximum_endurance, current_endurance, physical_attack_talisman, magical_attack_talisman, talisman_of_accuracy, talisman_of_defence, upgrade_level, upgrade_rate) 
-        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ", player_id, index, 0, quantity, 0, 0, 0, 0, 0, 0, 0, 0)
-        .execute(&database.connection).await.unwrap();
-    });
-}
-
 fn handle_authentication(mut commands: Commands, query: Query<(Entity, &AuthenticateRequest, &SocketWriter)>, database: Res<Database>) {
     for (entity, client_packet, socket_writer) in &query {
         if let Some(user_id) = authenticate(&database, &socket_writer, &client_packet.username, &client_packet.password) {
@@ -206,7 +129,7 @@ fn handle_authentication(mut commands: Commands, query: Query<(Entity, &Authenti
 
 fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, &DeleteCharacterRequest, &SocketWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
-        delete_character(&database, user.id, client_packet.character_id);
+        delete_user_player_by_id(&database, user.id, client_packet.character_id);
         list_characters(&database, &socket_writer, user.id);
         list_deleted_characters(&database, &socket_writer, user.id);
         commands.entity(entity).remove::<DeleteCharacterRequest>();
@@ -215,7 +138,7 @@ fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, 
 
 fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity, &User, &RestoreDeletedCharacterRequest, &SocketWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
-        restore_deleted_character(&database, user.id, client_packet.character_id);
+        restore_user_player_by_id(&database, user.id, client_packet.character_id);
         list_characters(&database, &socket_writer, user.id);
         list_deleted_characters(&database, &socket_writer, user.id);
         commands.entity(entity).remove::<RestoreDeletedCharacterRequest>();
@@ -238,8 +161,10 @@ fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, 
             client_packet.hair, 
             client_packet.class
         ) {
-            create_item(&database, player_id, 1, 100);
-            create_item(&database, player_id, 47, 100);
+            let item_changeset = ItemCreateChangeset { player_id, index: 1, prefix: 0, quantity: 1 };
+            create_item(&database, &item_changeset);
+            let item_changeset = ItemCreateChangeset { player_id, index: 47, prefix: 0, quantity: 100 };
+            create_item(&database, &item_changeset);
         }
         list_characters(&database, &socket_writer, user.id);
         list_deleted_characters(&database, &socket_writer, user.id);

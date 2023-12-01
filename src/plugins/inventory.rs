@@ -3,6 +3,7 @@ use crate::components::equipped_weapon::EquippedWeapon;
 use crate::components::item::Item;
 use crate::components::player::Player;
 use crate::components::position::Position;
+use crate::components::previous::Previous;
 use crate::repositories::item::find_all_items_by_player_id;
 use crate::responses::equip_item::EquipItemResponse;
 use crate::responses::inventory::InventoryResponse;
@@ -23,6 +24,7 @@ impl Plugin for InventoryPlugin {
         app.add_systems(Update, use_item);
     }
 }
+
 #[derive(Component)]
 struct PlayerOwner {
     player: Entity
@@ -33,7 +35,7 @@ fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &
         if added_player {
             let items = find_all_items_by_player_id(&database, player.id);
             let items: Vec<(u32, Item)> = items.iter().map(|item_row| {
-                let item = Item::new(&item_row);
+                let item = Item::from(item_row);
                 let item_id = commands.spawn((item.clone(), PlayerOwner { player: entity })).id().index();
                 (item_id, item)
             }).collect();
@@ -41,11 +43,6 @@ fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &
             socket_writer.write(&mut (&inventory).into());
         }
     }
-}
-
-#[derive(Component)]
-pub struct OldWeapon {
-    pub item: Option<Entity>
 }
 
 fn equip_item(mut commands: Commands, mut query: Query<(Entity, &EquipItemRequest, &mut EquippedWeapon)>, items_query: Query<(Entity, &PlayerOwner)>) {
@@ -83,7 +80,7 @@ fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>) {
     }
 }
 
-fn broadcast_weapon_change(mut query: Query<(Changed<EquippedWeapon>, &Player, &EquippedWeapon, &mut OldWeapon, &Position)>, players_query: Query<(&Position, &SocketWriter)>) {
+fn broadcast_weapon_change(mut query: Query<(Changed<EquippedWeapon>, &Player, &EquippedWeapon, &mut Previous<EquippedWeapon>, &Position)>, players_query: Query<(&Position, &SocketWriter)>) {
     for (changed, player, weapon, mut old_weapon, position) in query.iter_mut() {
         if changed {
             if let Some(item) = weapon.item {
@@ -98,7 +95,7 @@ fn broadcast_weapon_change(mut query: Query<(Changed<EquippedWeapon>, &Player, &
                     }
                 }
             } else {
-                if let Some(item) = old_weapon.item {
+                if let Some(item) = old_weapon.entity.item {
                     let unequip_item = UnequipItemResponse { 
                         player_id: player.id, 
                         item_id: item.index(), 
@@ -111,7 +108,7 @@ fn broadcast_weapon_change(mut query: Query<(Changed<EquippedWeapon>, &Player, &
                     }
                 }
             }
-            old_weapon.item = weapon.item;
+            old_weapon.entity.item = weapon.item;
         }
     }
 }
