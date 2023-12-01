@@ -1,5 +1,8 @@
-use tokio::{net::{TcpListener, TcpStream}, io::{AsyncReadExt, AsyncWriteExt}};
-use crate::{framework::packet_queue::PacketQueue, packets::{client::ClientPacket, server::ServerPacket}};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+use crate::framework::packet_queue::PacketQueue;
+use crate::responses::ServerPacket;
+use crate::requests::ClientPacket;
 
 pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_server_packets: bool, show_client_packets: bool) -> tokio::io::Result<()> {
     let listener = TcpListener::bind(client).await?;
@@ -20,7 +23,7 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
                         queue.push(&buffer[..n]);
                         while let Some(packet_buffer) = queue.pop() {
                             let _ = server_writer.write_all(&packet_buffer).await;
-                            let client_packet = crate::packets::client::deserialize(&packet_buffer);
+                            let client_packet = crate::requests::deserialize(&packet_buffer);
                             if show_client_packets {
                                 if hide_known_packets {
                                     if let ClientPacket::Unknown(client_packet) = client_packet {
@@ -51,7 +54,7 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
                         queue.push(&buffer[..n]);
                         while let Some(packet_buffer) = queue.pop() {
                             let _ = client_writer.write_all(&packet_buffer).await;
-                            let server_packet = crate::packets::server::deserialize(&packet_buffer);
+                            let server_packet = crate::responses::deserialize(&packet_buffer);
                             if show_server_packets {
                                 if hide_known_packets {
                                     if let ServerPacket::Unknown(server_packet) = server_packet {

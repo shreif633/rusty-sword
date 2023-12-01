@@ -1,6 +1,8 @@
 use bevy::prelude::*;
-use crate::packets::client::chat_message::ChatMessage;
-use super::{tcp_server::SocketWriter, player_movement::Position, select_character::Appearence};
+use crate::components::appearence::Appearence;
+use crate::{responses::chat_message::ChatMessageResponse, components::position::Position};
+use crate::requests::chat_message::ChatMessageRequest;
+use super::tcp_server::SocketWriter;
 
 pub struct ChatPlugin;
 
@@ -10,9 +12,9 @@ impl Plugin for ChatPlugin {
     }
 }
 
-fn handle_chat_message(mut commands: Commands, emote_query: Query<(Entity, &ChatMessage, &Position, &Appearence)>, players_query: Query<(&Position, &SocketWriter)>) {
+fn handle_chat_message(mut commands: Commands, emote_query: Query<(Entity, &ChatMessageRequest, &Position, &Appearence)>, players_query: Query<(&Position, &SocketWriter)>) {
     for (entity, client_packet, chatting_position, chatting_appearence) in &emote_query {
-        let chat_message = crate::packets::server::chat_message::ChatMessage { 
+        let chat_message = ChatMessageResponse { 
             character_name: chatting_appearence.name.clone(), 
             message: client_packet.message.clone()
         };
@@ -21,6 +23,6 @@ fn handle_chat_message(mut commands: Commands, emote_query: Query<(Entity, &Chat
                 socket_writer.write(&mut (&chat_message).into());
             }
         }
-        commands.entity(entity).remove::<ChatMessage>();
+        commands.entity(entity).remove::<ChatMessageRequest>();
     }
 }
