@@ -30,6 +30,8 @@ A series of scripts used to help developing as an admin
 `$ sqlx migrate run`
 `$ cargo run -- --mode scripts`
 
+## Project Structure
+
 ### requests
 - packets coming from the clients
 - each packet becomes a tag
@@ -76,6 +78,13 @@ A series of scripts used to help developing as an admin
 - follows naming conventions based on exlixir phoenix 
 - use entire rows to read
 - use small changesets to write
+
+## ECS Stages
+- first: read packets from clients
+- pre update: validate data, like checking if a skill is in cooldown
+- update: run your custom scripts here
+- post update: use this to bypass systems, like removing damage after its dealt but before its accounted
+- last: send packets to clients based on the updates that made throught the frame
 
 ## How to contribute
 - The master branch is only for stable and reviewed code

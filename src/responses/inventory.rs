@@ -38,7 +38,7 @@ impl InventoryResponse {
                 id: *entity_id, 
                 prefix: item.prefix, 
                 info: 0, 
-                quantity: item.quantity,
+                quantity: 100,
                 maximum_endurance: item.maximum_endurance, 
                 current_endurance: item.current_endurance, 
                 unknown1: 0, 

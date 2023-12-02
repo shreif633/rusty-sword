@@ -8,7 +8,7 @@ pub struct TcpServerPlugin;
 
 impl Plugin for TcpServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, process_socket_queue);
+        app.add_systems(First, process_socket_queue);
     }
 }
 

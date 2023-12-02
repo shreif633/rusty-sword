@@ -29,6 +29,9 @@ pub mod character_creation_error;
 pub mod character_restoration_error;
 pub mod equip_item;
 pub mod unequip_item;
+pub mod player_current_health_points;
+pub mod visual_effect;
+pub mod update_item_quantity;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -61,6 +64,9 @@ pub enum ServerPacket {
     CharacterRestorationError(self::character_restoration_error::CharacterRestorationErrorResponse),
     EquipItem(self::equip_item::EquipItemResponse),
     UnequipItem(self::unequip_item::UnequipItemResponse),
+    PlayerCurrentHealthPoints(self::player_current_health_points::PlayerCurrentHealthPointsResponse),
+    VisualEffect(self::visual_effect::VisualEffectResponse),
+    UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -88,12 +94,14 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::character_restoration_error::HEADER => ServerPacket::CharacterRestorationError(self::character_restoration_error::CharacterRestorationErrorResponse::from(&mut packet)),
         self::equip_item::HEADER => ServerPacket::EquipItem(self::equip_item::EquipItemResponse::from(&mut packet)),
         self::unequip_item::HEADER => ServerPacket::UnequipItem(self::unequip_item::UnequipItemResponse::from(&mut packet)),
+        self::update_item_quantity::HEADER => ServerPacket::UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {
                 self::check_hash::SUB_HEADER => ServerPacket::CheckHash(self::check_hash::CheckHashResponse::from(&mut packet)),
                 self::system_message::SUB_HEADER => ServerPacket::SystemMessage(self::system_message::SystemMessageResponse::from(&mut packet)),
                 self::popup_message::SUB_HEADER => ServerPacket::PopupMessage(self::popup_message::PopupMessageResponse::from(&mut packet)),
+                self::visual_effect::SUB_HEADER => ServerPacket::VisualEffect(self::visual_effect::VisualEffectResponse::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         },
@@ -105,6 +113,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
                 self::player_extra_intelligence::SUB_HEADER => ServerPacket::PlayerExtraIntelligence(self::player_extra_intelligence::PlayerExtraIntelligenceResponse::from(&mut packet)),
                 self::player_extra_wisdom::SUB_HEADER => ServerPacket::PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdomResponse::from(&mut packet)),
                 self::player_extra_agility::SUB_HEADER => ServerPacket::PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgilityResponse::from(&mut packet)),
+                self::player_current_health_points::SUB_HEADER => ServerPacket::PlayerCurrentHealthPoints(self::player_current_health_points::PlayerCurrentHealthPointsResponse::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         },

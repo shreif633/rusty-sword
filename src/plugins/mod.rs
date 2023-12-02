@@ -6,5 +6,8 @@ pub mod player_movement;
 pub mod emote;
 pub mod chat;
 pub mod persist_player;
+pub mod player_health;
 pub mod inventory;
+pub mod medicine;
 pub mod skills;
+pub mod visual_effects;

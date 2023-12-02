@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-
 use crate::repositories::player::PlayerRow;
 
 #[derive(Component)]

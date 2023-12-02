@@ -1,12 +1,16 @@
 use bevy::prelude::*;
 use crate::components::equipped_weapon::EquippedWeapon;
 use crate::components::item::Item;
+use crate::components::item_quantity::ItemQuantity;
+use crate::components::medicine::Medicine;
 use crate::components::player::Player;
+use crate::components::player_owner::PlayerOwner;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
 use crate::repositories::item::find_all_items_by_player_id;
 use crate::responses::equip_item::EquipItemResponse;
 use crate::responses::inventory::InventoryResponse;
+use crate::responses::update_item_quantity::{UpdateItemQuantityResponse, ItemQuantityAction};
 use crate::{framework::database::Database, responses::unequip_item::UnequipItemResponse};
 use crate::requests::use_item::UseItemRequest;
 use crate::requests::unequip_item::UnequipItemRequest;
@@ -17,17 +21,13 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
+        app.add_systems(PreUpdate, use_item);
         app.add_systems(Update, load_inventory);
         app.add_systems(Update, equip_item.before(broadcast_weapon_change));
         app.add_systems(Update, unequip_item.before(broadcast_weapon_change));
         app.add_systems(Update, broadcast_weapon_change);
-        app.add_systems(Update, use_item);
+        app.add_systems(PostUpdate, update_item_quantity);
     }
-}
-
-#[derive(Component)]
-struct PlayerOwner {
-    player: Entity
 }
 
 fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &Player, &SocketWriter)>, database: Res<Database>) {
@@ -36,7 +36,7 @@ fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &
             let items = find_all_items_by_player_id(&database, player.id);
             let items: Vec<(u32, Item)> = items.iter().map(|item_row| {
                 let item = Item::from(item_row);
-                let item_id = commands.spawn((item.clone(), PlayerOwner { player: entity })).id().index();
+                let item_id = commands.spawn((item.clone(), PlayerOwner { player: entity }, ItemQuantity { quantity: item_row.quantity })).id().index();
                 (item_id, item)
             }).collect();
             let inventory = InventoryResponse::new(items);
@@ -73,10 +73,30 @@ fn unequip_item(mut commands: Commands, mut query: Query<(Entity, &UnequipItemRe
     }
 }
 
-fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>) {
+fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>, mut items_query: Query<(Entity, &Item, &mut ItemQuantity)>) {
     for (entity, use_item) in &query {
-        println!("USE ITEM {:?}", use_item);
+        for (item_entity, item, mut item_quantity) in items_query.iter_mut() {
+            if item_entity.index() == use_item.item_id {
+                if item.index == 47 {
+                    if item_quantity.quantity > 1 {
+                        commands.entity(entity).insert(Medicine { health_recovered: 300 });
+                        item_quantity.quantity -= 1
+                    }
+                }
+            }
+        }
         commands.entity(entity).remove::<UseItemRequest>();
+    }
+}
+
+fn update_item_quantity(query: Query<(Entity, &ItemQuantity, Changed<ItemQuantity>, &PlayerOwner)>, players_query: Query<&SocketWriter>) {
+    for (entity, item_quantity, item_changed, player_owner) in &query {
+        if item_changed {
+            let update_item_quantity_response = UpdateItemQuantityResponse { item_id: entity.index(), quantity: item_quantity.quantity, action: ItemQuantityAction::Consume };
+            if let Ok(socket_writer) = players_query.get(player_owner.player) {
+                socket_writer.write(&mut (&update_item_quantity_response).into());
+            }
+        }
     }
 }
 
