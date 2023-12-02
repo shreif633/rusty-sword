@@ -25,29 +25,25 @@ impl Plugin for PlayerMovementPlugin {
     }
 }
 
-fn handle_position_added(query: Query<(Added<Position>, &Player, &Job, &Position, &Appearence, &SocketWriter)>) {
-    for (added_position, player, job, position, appearence, socket_writer) in &query {
-        if added_position {
-            let player_position = PlayerPositionResponse { unknown: vec![47, 1], x: position.x, y: position.y };
-            socket_writer.write(&mut (&player_position).into());
-            let player_appear = PlayerAppearResponse::new(&player, &job, &position, &appearence, true);
-            socket_writer.write(&mut (&player_appear).into());
-        }
+fn handle_position_added(query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter), Added<Position>>) {
+    for (player, job, position, appearence, socket_writer) in &query {
+        let player_position = PlayerPositionResponse { unknown: vec![47, 1], x: position.x, y: position.y };
+        socket_writer.write(&mut (&player_position).into());
+        let player_appear = PlayerAppearResponse::new(&player, &job, &position, &appearence, true);
+        socket_writer.write(&mut (&player_appear).into());
     }
 }
 
-fn handle_position_change(moved_query: Query<(&Player, Changed<Position>, &Job, &Previous<Position>, &Position, &Appearence, &SocketWriter)>, players_query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter)>) {
-    for (moved_player, moved_position_changed, moved_job, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
-        if moved_position_changed {
-            for (player, job, position, appearence, socket_writer) in &players_query {
-                if moved_player.id != player.id {
-                    if !position.is_in_sight(&moved_previous_position.entity) {
-                        if position.is_in_sight(&moved_position) {
-                            let player_appear = PlayerAppearResponse::new(&moved_player, &moved_job, &moved_position, &moved_appearence, false);
-                            socket_writer.write(&mut (&player_appear).into());
-                            let player_appear = PlayerAppearResponse::new(&player, &job, &position, &appearence, false);
-                            moved_socket_writer.write(&mut (&player_appear).into());
-                        }
+fn handle_position_change(moved_query: Query<(&Player, &Job, &Previous<Position>, &Position, &Appearence, &SocketWriter), Changed<Position>>, players_query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter)>) {
+    for (moved_player, moved_job, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
+        for (player, job, position, appearence, socket_writer) in &players_query {
+            if moved_player.id != player.id {
+                if !position.is_in_sight(&moved_previous_position.entity) {
+                    if position.is_in_sight(&moved_position) {
+                        let player_appear = PlayerAppearResponse::new(&moved_player, &moved_job, &moved_position, &moved_appearence, false);
+                        socket_writer.write(&mut (&player_appear).into());
+                        let player_appear = PlayerAppearResponse::new(&player, &job, &position, &appearence, false);
+                        moved_socket_writer.write(&mut (&player_appear).into());
                     }
                 }
             }

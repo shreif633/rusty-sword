@@ -22,12 +22,10 @@ fn limit_current_health_points(mut query: Query<(&mut CurrentHealthPoints, &Maxi
     }
 }
 
-fn update_player_health(mut query: Query<(Changed<CurrentHealthPoints>, &mut Previous<CurrentHealthPoints>, &CurrentHealthPoints, &SocketWriter)>) {
-    for (changed, mut previous_health_points, current_health_points, socket_writer) in query.iter_mut() {
-        if changed {
-            previous_health_points.entity.current_health_points = current_health_points.current_health_points;
-            let player_current_health_points_response = PlayerCurrentHealthPointsResponse { current_health_points: current_health_points.current_health_points };
-            socket_writer.write(&mut (&player_current_health_points_response).into());
-        }
+fn update_player_health(mut query: Query<(&mut Previous<CurrentHealthPoints>, &CurrentHealthPoints, &SocketWriter), Changed<CurrentHealthPoints>>) {
+    for (mut previous_health_points, current_health_points, socket_writer) in query.iter_mut() {
+        previous_health_points.entity.current_health_points = current_health_points.current_health_points;
+        let player_current_health_points_response = PlayerCurrentHealthPointsResponse { current_health_points: current_health_points.current_health_points };
+        socket_writer.write(&mut (&player_current_health_points_response).into());
     }
 }

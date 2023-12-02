@@ -30,18 +30,16 @@ impl Plugin for InventoryPlugin {
     }
 }
 
-fn load_inventory(mut commands: Commands, query: Query<(Entity, Added<Player>, &Player, &SocketWriter)>, database: Res<Database>) {
-    for (entity, added_player, player, socket_writer) in &query {
-        if added_player {
-            let items = find_all_items_by_player_id(&database, player.id);
-            let items: Vec<(u32, Item)> = items.iter().map(|item_row| {
-                let item = Item::from(item_row);
-                let item_id = commands.spawn((item.clone(), PlayerOwner { player: entity }, ItemQuantity { quantity: item_row.quantity })).id().index();
-                (item_id, item)
-            }).collect();
-            let inventory = InventoryResponse::new(items);
-            socket_writer.write(&mut (&inventory).into());
-        }
+fn load_inventory(mut commands: Commands, query: Query<(Entity, &Player, &SocketWriter), Added<Player>>, database: Res<Database>) {
+    for (entity, player, socket_writer) in &query {
+        let items = find_all_items_by_player_id(&database, player.id);
+        let items: Vec<(u32, Item)> = items.iter().map(|item_row| {
+            let item = Item::from(item_row);
+            let item_id = commands.spawn((item.clone(), PlayerOwner { player: entity }, ItemQuantity { quantity: item_row.quantity })).id().index();
+            (item_id, item)
+        }).collect();
+        let inventory = InventoryResponse::new(items);
+        socket_writer.write(&mut (&inventory).into());
     }
 }
 
@@ -89,46 +87,42 @@ fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>, mut
     }
 }
 
-fn update_item_quantity(query: Query<(Entity, &ItemQuantity, Changed<ItemQuantity>, &PlayerOwner)>, players_query: Query<&SocketWriter>) {
-    for (entity, item_quantity, item_changed, player_owner) in &query {
-        if item_changed {
-            let update_item_quantity_response = UpdateItemQuantityResponse { item_id: entity.index(), quantity: item_quantity.quantity, action: ItemQuantityAction::Consume };
-            if let Ok(socket_writer) = players_query.get(player_owner.player) {
-                socket_writer.write(&mut (&update_item_quantity_response).into());
-            }
+fn update_item_quantity(query: Query<(Entity, &ItemQuantity, &PlayerOwner), Changed<ItemQuantity>>, players_query: Query<&SocketWriter>) {
+    for (entity, item_quantity, player_owner) in &query {
+        let update_item_quantity_response = UpdateItemQuantityResponse { item_id: entity.index(), quantity: item_quantity.quantity, action: ItemQuantityAction::Consume };
+        if let Ok(socket_writer) = players_query.get(player_owner.player) {
+            socket_writer.write(&mut (&update_item_quantity_response).into());
         }
     }
 }
 
-fn broadcast_weapon_change(mut query: Query<(Changed<EquippedWeapon>, &Player, &EquippedWeapon, &mut Previous<EquippedWeapon>, &Position)>, players_query: Query<(&Position, &SocketWriter)>) {
-    for (changed, player, weapon, mut old_weapon, position) in query.iter_mut() {
-        if changed {
-            if let Some(item) = weapon.item {
-                let equip_item = EquipItemResponse { 
+fn broadcast_weapon_change(mut query: Query<(&Player, &EquippedWeapon, &mut Previous<EquippedWeapon>, &Position), Changed<EquippedWeapon>>, players_query: Query<(&Position, &SocketWriter)>) {
+    for (player, weapon, mut old_weapon, position) in query.iter_mut() {
+        if let Some(item) = weapon.item {
+            let equip_item = EquipItemResponse { 
+                player_id: player.id, 
+                item_id: item.index(), 
+                item_index: 1 
+            };
+            for (other_position, other_socket_writer) in &players_query {
+                if other_position.is_in_sight(&position) {
+                    other_socket_writer.write(&mut (&equip_item).into());
+                }
+            }
+        } else {
+            if let Some(item) = old_weapon.entity.item {
+                let unequip_item = UnequipItemResponse { 
                     player_id: player.id, 
                     item_id: item.index(), 
                     item_index: 1 
                 };
                 for (other_position, other_socket_writer) in &players_query {
                     if other_position.is_in_sight(&position) {
-                        other_socket_writer.write(&mut (&equip_item).into());
-                    }
-                }
-            } else {
-                if let Some(item) = old_weapon.entity.item {
-                    let unequip_item = UnequipItemResponse { 
-                        player_id: player.id, 
-                        item_id: item.index(), 
-                        item_index: 1 
-                    };
-                    for (other_position, other_socket_writer) in &players_query {
-                        if other_position.is_in_sight(&position) {
-                            other_socket_writer.write(&mut (&unequip_item).into());
-                        }
+                        other_socket_writer.write(&mut (&unequip_item).into());
                     }
                 }
             }
-            old_weapon.entity.item = weapon.item;
         }
+        old_weapon.entity.item = weapon.item;
     }
 }
