@@ -7,7 +7,7 @@ use crate::components::player::Player;
 use crate::components::player_owner::PlayerOwner;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
-use crate::configs::items::ItemsConfig;
+use crate::configs::items::{ItemsConfig, ItemCategory};
 use crate::repositories::item::find_all_items_by_player_id;
 use crate::responses::equip_item::EquipItemResponse;
 use crate::responses::inventory::InventoryResponse;
@@ -79,8 +79,11 @@ fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>, mut
             if item_entity.index() == use_item.item_id {
                 let config = items_config.config.get(&item.index);
                 if let Some(config) = config {
-                    if let Some(health_recovered) = config.medicine {
-                        commands.entity(entity).insert(Medicine { health_recovered, cooldown_in_seconds: config.cooldown_in_seconds });
+                    if config.category == ItemCategory::Medicine {
+                        commands.entity(entity).insert(Medicine { 
+                            health_recovered: config.health_recovered, 
+                            cooldown_in_seconds: config.cooldown_in_seconds 
+                        });
                     }
                     if config.consumable {
                         item_quantity.quantity -= 1

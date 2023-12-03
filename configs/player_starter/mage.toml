@@ -25,6 +25,6 @@ bound = true
 
 [[item]]
 index = 47
-quantity = 1
+quantity = 100
 prefix = 0
 bound = true

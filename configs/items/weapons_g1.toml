@@ -1,0 +1,17 @@
+[[item]]
+name = "Short Iron Sword" 
+index = 1 
+image = "Wea001"
+description = "" 
+consumable = false
+stackable = false
+cooldown_in_seconds = 0
+class = "knight"
+category = "weapon"
+level_requirement = 1
+range = 16
+endurance = 4
+attack_speed = 700
+minimum_physical_attack = 3
+maximum_physical_attack = 10
+on_target_point = 15
