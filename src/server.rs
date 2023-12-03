@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use std::sync::{Mutex, Arc};
-use crate::configs::player_starter;
+use crate::configs::{player_starter, items};
 use crate::plugins::medicine::MedicinePlugin;
 use crate::plugins::player_health::PlayerHealthPlugin;
 use crate::plugins::select_server::ServerSelectPlugin;
@@ -23,6 +23,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
         let socket_queue = SocketQueue { queue };
         let database = Database::connect().await;
         let player_starter_config = player_starter::load();
+        let items_config = items::load();
         App::new()
             .add_plugins(MinimalPlugins)
             .add_plugins(ServerSelectPlugin)
@@ -40,6 +41,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(VisualEffectPlugin)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
+            .insert_resource(items_config)
             .insert_resource(database)
             .run();
     });

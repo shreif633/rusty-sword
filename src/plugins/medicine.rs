@@ -23,8 +23,8 @@ fn check_cooldown_for_medicine(mut commands: Commands, query: Query<(Entity, &Me
 fn apply_medicine(mut commands: Commands, mut query: Query<(Entity, &mut CurrentHealthPoints, &Medicine), Without<Cooldown<Medicine>>>) {
     for (entity, mut current_health_points, medicine) in query.iter_mut() {
         current_health_points.current_health_points += medicine.health_recovered;
-        commands.entity(entity).insert(VisualEffect { visual_effect: "davi_ef249".to_string() });
-        commands.entity(entity).insert(Cooldown::<Medicine>::new(5.0));
+        commands.entity(entity).insert(VisualEffect { visual_effect: "effect_skill01".to_string() });
+        commands.entity(entity).insert(Cooldown::<Medicine>::new(medicine.cooldown_in_seconds));
         commands.entity(entity).remove::<Medicine>();
     }
 }

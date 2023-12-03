@@ -7,11 +7,13 @@ use crate::components::player::Player;
 use crate::components::player_owner::PlayerOwner;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
+use crate::configs::items::ItemsConfig;
 use crate::repositories::item::find_all_items_by_player_id;
 use crate::responses::equip_item::EquipItemResponse;
 use crate::responses::inventory::InventoryResponse;
 use crate::responses::update_item_quantity::{UpdateItemQuantityResponse, ItemQuantityAction};
-use crate::{framework::database::Database, responses::unequip_item::UnequipItemResponse};
+use crate::framework::database::Database;
+use crate::responses::unequip_item::UnequipItemResponse;
 use crate::requests::use_item::UseItemRequest;
 use crate::requests::unequip_item::UnequipItemRequest;
 use crate::requests::equip_item::EquipItemRequest;
@@ -71,13 +73,16 @@ fn unequip_item(mut commands: Commands, mut query: Query<(Entity, &UnequipItemRe
     }
 }
 
-fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>, mut items_query: Query<(Entity, &Item, &mut ItemQuantity)>) {
+fn use_item(mut commands: Commands, query: Query<(Entity, &UseItemRequest)>, mut items_query: Query<(Entity, &Item, &mut ItemQuantity)>, items_config: Res<ItemsConfig>) {
     for (entity, use_item) in &query {
         for (item_entity, item, mut item_quantity) in items_query.iter_mut() {
             if item_entity.index() == use_item.item_id {
-                if item.index == 47 {
-                    if item_quantity.quantity > 1 {
-                        commands.entity(entity).insert(Medicine { health_recovered: 300 });
+                let config = items_config.config.get(&item.index);
+                if let Some(config) = config {
+                    if let Some(health_recovered) = config.medicine {
+                        commands.entity(entity).insert(Medicine { health_recovered, cooldown_in_seconds: config.cooldown_in_seconds });
+                    }
+                    if config.consumable {
                         item_quantity.quantity -= 1
                     }
                 }
