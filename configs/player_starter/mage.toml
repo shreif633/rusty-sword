@@ -18,7 +18,7 @@ y = 257663
 z = 15924
 
 [[item]]
-index = 1
+index = 90
 quantity = 1
 prefix = 0
 bound = true
