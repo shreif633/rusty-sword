@@ -297,3 +297,24 @@ pub fn create_player(database: &Database, changeset: &PlayerCreateChangeset) -> 
     }) as u32;
     Some(player_id)
 }
+
+pub struct PlayerUpdatePositionChangeset {
+    pub id: u32,
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+}
+
+pub fn update_all_player_position_by_id(
+    database: &Database,
+    changesets: &Vec<PlayerUpdatePositionChangeset>
+) {
+    let mut update = "".to_string();
+    for changeset in changesets {
+        update.push_str(&format!("UPDATE players SET x = {}, y = {}, z = {} WHERE id = {};", changeset.x, changeset.y, changeset.z, changeset.id));
+    }
+    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+    rt.block_on(async move {
+        query(&update).execute(&database.connection).await.unwrap()
+    });
+} 

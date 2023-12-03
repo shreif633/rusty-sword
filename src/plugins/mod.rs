@@ -5,6 +5,7 @@ pub mod select_character;
 pub mod player_movement;
 pub mod emote;
 pub mod chat;
+pub mod persist_item;
 pub mod persist_player;
 pub mod player_health;
 pub mod inventory;

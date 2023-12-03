@@ -1,6 +1,8 @@
 use bevy::prelude::*;
-use crate::{framework::database::Database, components::{player::Player, position::Position}};
-use sqlx::query;
+use crate::repositories::player::{PlayerUpdatePositionChangeset, update_all_player_position_by_id};
+use crate::components::position::Position;
+use crate::components::player::Player;
+use crate::framework::database::Database;
 
 pub struct PersistPlayerPlugin;
 
@@ -29,13 +31,11 @@ fn persist_player(
     let mut timer = timer.get_single_mut().unwrap();
     timer.timer.tick(time.delta());
     if timer.timer.just_finished() {
-        let mut update = "".to_string();
+        let mut changesets = Vec::<PlayerUpdatePositionChangeset>::new();
         for (player, position) in &players_query {
-            update.push_str(&format!("UPDATE players SET x = {}, y = {}, z = {} WHERE id = {};", position.x, position.y, position.z, player.id));
+            let changeset = PlayerUpdatePositionChangeset { id: player.id, x: position.x, y: position.y, z: position.z };
+            changesets.push(changeset);
         }
-        let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
-        rt.block_on(async move {
-            query(&update).execute(&database.connection).await.unwrap()
-        });
+        update_all_player_position_by_id(&database, &changesets);
     }
 } 

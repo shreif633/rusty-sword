@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use std::sync::{Mutex, Arc};
 use crate::configs::{player_starter, items};
 use crate::plugins::medicine::MedicinePlugin;
+use crate::plugins::persist_item::PersistItemPlugin;
 use crate::plugins::player_health::PlayerHealthPlugin;
 use crate::plugins::select_server::ServerSelectPlugin;
 use crate::framework::database::Database;
@@ -34,6 +35,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(EmotePlugin)
             .add_plugins(ChatPlugin)
             .add_plugins(PersistPlayerPlugin)
+            .add_plugins(PersistItemPlugin)
             .add_plugins(InventoryPlugin)
             .add_plugins(SkillsPlugin)
             .add_plugins(PlayerHealthPlugin)

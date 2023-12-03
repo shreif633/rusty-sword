@@ -60,3 +60,22 @@ pub fn create_item(database: &Database, changeset: &ItemCreateChangeset) {
         .execute(&database.connection).await.unwrap();
     });
 }
+
+pub struct ItemUpdateQuantityChangeset {
+    pub id: i32,
+    pub quantity: u32,
+}
+
+pub fn update_all_item_quantity_by_id(
+    database: &Database,
+    changesets: &Vec<ItemUpdateQuantityChangeset>
+) {
+    let mut update = "".to_string();
+    for changeset in changesets {
+        update.push_str(&format!("UPDATE items SET quantity = {} WHERE id = {};", changeset.quantity, changeset.id));
+    }
+    let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+    rt.block_on(async move {
+        query(&update).execute(&database.connection).await.unwrap()
+    });
+} 
