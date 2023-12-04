@@ -115,12 +115,15 @@ impl Packet {
         i32::from_le_bytes(slice.try_into().unwrap())
     }
 
-    #[allow(dead_code)]
     pub fn get_i64(&mut self) -> i64 {
         let i = self.cursor as usize;
         let slice = &self.buffer[i..i + 8];
         self.cursor += 8;
         i64::from_le_bytes(slice.try_into().unwrap())
+    }
+
+    pub fn write_i64(&mut self, value: i64) {
+        self.buffer.extend_from_slice(&value.to_le_bytes());
     }
 
     pub fn serialize(&mut self) -> Vec<u8> {

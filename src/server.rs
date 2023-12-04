@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use std::sync::{Mutex, Arc};
-use crate::configs::{player_starter, items};
+use crate::configs::{player_starter, items, monsters, npcs};
 use crate::plugins::medicine::MedicinePlugin;
 use crate::plugins::persist_item::PersistItemPlugin;
 use crate::plugins::player_health::PlayerHealthPlugin;
@@ -14,6 +14,8 @@ use crate::plugins::emote::EmotePlugin;
 use crate::plugins::player_movement::PlayerMovementPlugin;
 use crate::plugins::select_character::SelectCharacterPlugin;
 use crate::plugins::character_selection::CharacterSelectionPlugin;
+use crate::plugins::spawn_monsters::SpawnMonstersPlugin;
+use crate::plugins::spawn_npcs::SpawnNPCsPlugin;
 use crate::plugins::tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServerPlugin};
 use crate::plugins::visual_effects::VisualEffectPlugin;
 use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc::{self}};
@@ -25,6 +27,8 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
         let database = Database::connect().await;
         let player_starter_config = player_starter::load();
         let items_config = items::load();
+        let monsters_config = monsters::load();
+        let npcs_config = npcs::load();
         App::new()
             .add_plugins(MinimalPlugins)
             .add_plugins(ServerSelectPlugin)
@@ -41,9 +45,13 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(PlayerHealthPlugin)
             .add_plugins(MedicinePlugin)
             .add_plugins(VisualEffectPlugin)
+            .add_plugins(SpawnMonstersPlugin)
+            .add_plugins(SpawnNPCsPlugin)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)
+            .insert_resource(monsters_config)
+            .insert_resource(npcs_config)
             .insert_resource(database)
             .run();
     });

@@ -3615,6 +3615,7 @@ dependencies = [
  "flume 0.11.0",
  "futures",
  "pwhash",
+ "rand",
  "serde",
  "sqlx",
  "tokio",

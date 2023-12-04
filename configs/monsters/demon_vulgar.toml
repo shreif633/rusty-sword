@@ -2,17 +2,11 @@
 name = "Demon Vulgar"
 index = 1
 level = 1
-
-[attributes]
 range = 20
 physical_attack = 200
 defense = 10
-
-[ai]
-type = "agressive"
+agressive = true
 sight = 240
-
-[rewards]
 experience = 2
 
 [[drop]]
@@ -22,8 +16,8 @@ chance = 10.0
 quest = 13
 
 [[spawn]]
-bottom_x = 123
-bottom_y = 123
-top_x = 125
-top_y = 125
+bottom_x = 257800
+bottom_y = 259904
+top_x = 258129
+top_y = 260045
 quantity = 30

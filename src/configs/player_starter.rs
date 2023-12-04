@@ -6,12 +6,12 @@ use std::io::Read;
 use crate::enums::player_class::PlayerClass;
 
 #[derive(Debug, Resource)]
-pub struct PlayerStarterConfig {
-    pub config: HashMap<PlayerClass, Config>
+pub struct PlayerStarterConfigs {
+    pub config: HashMap<PlayerClass, PlayerStarterConfig>
 } 
 
 #[derive(Debug, Deserialize)]
-pub struct Config {
+pub struct PlayerStarterConfig {
     pub welcome: Welcome,
     pub base_points: BasePoints,
     pub experience: Experience,
@@ -54,7 +54,7 @@ pub struct Item {
     pub bound: bool
 }
 
-pub fn read_config(class_name: &str) -> Config {
+pub fn read_config(class_name: &str) -> PlayerStarterConfig {
     let file_path = format!("configs/player_starter/{}.toml", class_name);
     let mut file = File::open(file_path).unwrap();
     let mut contents = String::new();
@@ -62,8 +62,8 @@ pub fn read_config(class_name: &str) -> Config {
     toml::from_str(&contents).unwrap()
 }
 
-pub fn load() -> PlayerStarterConfig {
-    let mut player_starter_config = PlayerStarterConfig { config: HashMap::new() };
+pub fn load() -> PlayerStarterConfigs {
+    let mut player_starter_config = PlayerStarterConfigs { config: HashMap::new() };
     player_starter_config.config.insert(PlayerClass::Knight, read_config("knight"));
     player_starter_config.config.insert(PlayerClass::Mage, read_config("mage"));
     player_starter_config.config.insert(PlayerClass::Archer, read_config("archer"));

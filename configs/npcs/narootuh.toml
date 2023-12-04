@@ -1,0 +1,24 @@
+[[npc]]
+name = "Statue of Black Crow in Narootuh"
+index = 142
+shape = 10
+quest = 168
+quest_flag = 1
+map = 0
+x = 257386 
+y = 259305 
+z = 16112
+look_at_x = 257386 
+look_at_y = 260305
+
+[[npc]]
+name = "Prophet [Baek-Hyeon]"
+index = 205
+shape = 7
+html = 200036
+map = 0
+x = 257700 
+y = 259137 
+z = 16080
+look_at_x = 257692 
+look_at_y = 259161

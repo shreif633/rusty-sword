@@ -49,7 +49,7 @@ impl PlayerBundle {
             base_points: BasePoints::from(player_row),
             extra_points: ExtraPoints::from(player_row),
             final_points: FinalPoints::from(player_row),
-            previous_position: Previous::from(Position::from(player_row)),
+            previous_position: Previous::from(Position { x: 0, y: 0, z: 0 }),
             position: Position::from(player_row),
             maximum_health_points: MaximumHealthPoints::from(player_row),
             current_health_points: CurrentHealthPoints::from(player_row),

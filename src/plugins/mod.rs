@@ -11,4 +11,6 @@ pub mod player_health;
 pub mod inventory;
 pub mod medicine;
 pub mod skills;
+pub mod spawn_monsters;
+pub mod spawn_npcs;
 pub mod visual_effects;

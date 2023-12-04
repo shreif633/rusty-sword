@@ -55,6 +55,7 @@ A series of scripts used to help developing as an admin
 - components that can be used by any plugin including 3rd party plugins
 - components that are private to a system should not be in this folder
 - should be broken into small components that are the minimum set of information that needs to be accessed on a use case
+- components can be aware of configs and rows
 
 ### bundles
 - prefab that groups components, follows same rules as components

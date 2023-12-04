@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::components::user::User;
-use crate::configs::player_starter::PlayerStarterConfig;
+use crate::configs::player_starter::PlayerStarterConfigs;
 use crate::framework::database::Database;
 use crate::repositories::item::{ItemCreateChangeset, create_item};
 use crate::repositories::player::{delete_user_player_by_id, find_player_exists_by_name, count_user_players, find_all_deleted_user_players, find_all_user_players, restore_user_player_by_id, PlayerCreateChangeset, create_player};
@@ -78,7 +78,7 @@ fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity
     }
 }
 
-fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, &CreateCharacterRequest, &SocketWriter)>, database: Res<Database>, player_starter_config: Res<PlayerStarterConfig>) {
+fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, &CreateCharacterRequest, &SocketWriter)>, database: Res<Database>, player_starter_config: Res<PlayerStarterConfigs>) {
     for (entity, user, client_packet, socket_writer) in &query {
         let player_starter_config = player_starter_config.config.get(&client_packet.class).unwrap();
             if count_user_players(&database, user.id) >= 5 {

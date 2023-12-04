@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::configs::npcs::NPCConfig;
 use crate::repositories::player::PlayerRow;
 
 #[derive(Component)]
@@ -14,6 +15,16 @@ impl From<&PlayerRow> for Position {
             x: player_row.x, 
             y: player_row.y, 
             z: player_row.z
+        }
+    }
+}
+
+impl From<&NPCConfig> for Position {
+    fn from(npc_config: &NPCConfig) -> Self {
+        Position { 
+            x: npc_config.x, 
+            y: npc_config.y, 
+            z: npc_config.z
         }
     }
 }
