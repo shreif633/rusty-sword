@@ -22,7 +22,7 @@ fn handle_emote(mut commands: Commands, emote_query: Query<(Entity, &Player, &Em
                 emote_index: client_packet.emote_index
             };
             for (position, socket_writer) in &players_query {
-                if position.is_in_sight(&emote_position) {
+                if position.is_in_sight(emote_position) {
                     socket_writer.write(&mut (&emote).into());
                 }
             }

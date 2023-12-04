@@ -51,10 +51,10 @@ fn list_deleted_characters(database: &Database, socket_writer: &SocketWriter, us
 
 fn handle_authentication(mut commands: Commands, query: Query<(Entity, &AuthenticateRequest, &SocketWriter)>, database: Res<Database>) {
     for (entity, client_packet, socket_writer) in &query {
-        if let Some(user_row) = authenticate(&database, &socket_writer, &client_packet.username, &client_packet.password) {
+        if let Some(user_row) = authenticate(&database, socket_writer, &client_packet.username, &client_packet.password) {
             commands.entity(entity).insert(User::from(&user_row));    
-            list_characters(&database, &socket_writer, user_row.id);
-            list_deleted_characters(&database, &socket_writer, user_row.id);
+            list_characters(&database, socket_writer, user_row.id);
+            list_deleted_characters(&database, socket_writer, user_row.id);
         }
         commands.entity(entity).remove::<AuthenticateRequest>();
     }
@@ -63,8 +63,8 @@ fn handle_authentication(mut commands: Commands, query: Query<(Entity, &Authenti
 fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, &DeleteCharacterRequest, &SocketWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
         delete_user_player_by_id(&database, user.id, client_packet.character_id);
-        list_characters(&database, &socket_writer, user.id);
-        list_deleted_characters(&database, &socket_writer, user.id);
+        list_characters(&database, socket_writer, user.id);
+        list_deleted_characters(&database, socket_writer, user.id);
         commands.entity(entity).remove::<DeleteCharacterRequest>();
     }
 }
@@ -72,8 +72,8 @@ fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, 
 fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity, &User, &RestoreDeletedCharacterRequest, &SocketWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
         restore_user_player_by_id(&database, user.id, client_packet.character_id);
-        list_characters(&database, &socket_writer, user.id);
-        list_deleted_characters(&database, &socket_writer, user.id);
+        list_characters(&database, socket_writer, user.id);
+        list_deleted_characters(&database, socket_writer, user.id);
         commands.entity(entity).remove::<RestoreDeletedCharacterRequest>();
     }
 }
@@ -116,8 +116,8 @@ fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, 
                 create_item(&database, &item_changeset);
             }
         }
-        list_characters(&database, &socket_writer, user.id);
-        list_deleted_characters(&database, &socket_writer, user.id);
+        list_characters(&database, socket_writer, user.id);
+        list_deleted_characters(&database, socket_writer, user.id);
         commands.entity(entity).remove::<CreateCharacterRequest>();
     }
 }

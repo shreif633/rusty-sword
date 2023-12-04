@@ -49,7 +49,7 @@ impl SocketWriter {
 
 fn process_socket_queue(mut commands: Commands, queue: ResMut<SocketQueue>, entities: Query<(Entity, &UserAddr)>) {
     let mut queue = queue.queue.lock().unwrap();
-    queue.drain(0..).into_iter().for_each(|connection_pair| {
+    queue.drain(0..).for_each(|connection_pair| {
         match connection_pair.1 {
             SocketMessage::Connected(socket_writer) => {
                 commands.spawn((SocketWriter { socket_writer }, UserAddr { socket_addr: connection_pair.0.clone() }));

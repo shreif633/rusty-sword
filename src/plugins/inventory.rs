@@ -113,7 +113,7 @@ fn broadcast_weapon_change(mut query: Query<(&Player, &EquippedWeapon, &mut Prev
                 item_index: 1 
             };
             for (other_position, other_socket_writer) in &players_query {
-                if other_position.is_in_sight(&position) {
+                if other_position.is_in_sight(position) {
                     other_socket_writer.write(&mut (&equip_item).into());
                 }
             }
@@ -125,7 +125,7 @@ fn broadcast_weapon_change(mut query: Query<(&Player, &EquippedWeapon, &mut Prev
                     item_index: 1 
                 };
                 for (other_position, other_socket_writer) in &players_query {
-                    if other_position.is_in_sight(&position) {
+                    if other_position.is_in_sight(position) {
                         other_socket_writer.write(&mut (&unequip_item).into());
                     }
                 }

@@ -14,7 +14,7 @@ fn show_visual_effects(mut commands: Commands, query: Query<(Entity, &Player, &V
     for (entity, player, visual_effect, position) in &query {
         let visual_effect_response = VisualEffectResponse::new(player.id, TargetType::Player, &visual_effect.visual_effect);
         for (other_position, other_socket_writer) in &players_query {
-            if other_position.is_in_sight(&position) {
+            if other_position.is_in_sight(position) {
                 other_socket_writer.write(&mut (&visual_effect_response).into());
             }
         }

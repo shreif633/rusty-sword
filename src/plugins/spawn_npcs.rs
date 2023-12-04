@@ -27,8 +27,8 @@ fn handle_position_change(moved_query: Query<(&Previous<Position>, &Position, &S
     for (moved_previous_position, moved_position, moved_socket_writer) in &moved_query {
         for (entity, npc, position, direction) in &npcs_query {
             if !position.is_in_sight(&moved_previous_position.entity) {
-                if position.is_in_sight(&moved_position) {
-                    let npc_appear = NPCAppearResponse::new(entity, &npc, &position, &direction);
+                if position.is_in_sight(moved_position) {
+                    let npc_appear = NPCAppearResponse::new(entity, npc, position, direction);
                     moved_socket_writer.write(&mut (&npc_appear).into());
                 }
             }

@@ -29,7 +29,7 @@ fn handle_position_added(query: Query<(&Player, &Job, &Position, &Appearence, &S
     for (player, job, position, appearence, socket_writer) in &query {
         let player_position = PlayerPositionResponse { unknown: vec![47, 1], x: position.x, y: position.y };
         socket_writer.write(&mut (&player_position).into());
-        let player_appear = PlayerAppearResponse::new(&player, &job, &position, &appearence, true);
+        let player_appear = PlayerAppearResponse::new(player, job, position, appearence, true);
         socket_writer.write(&mut (&player_appear).into());
     }
 }
@@ -39,10 +39,10 @@ fn handle_position_change(moved_query: Query<(&Player, &Job, &Previous<Position>
         for (player, job, position, appearence, socket_writer) in &players_query {
             if moved_player.id != player.id {
                 if !position.is_in_sight(&moved_previous_position.entity) {
-                    if position.is_in_sight(&moved_position) {
-                        let player_appear = PlayerAppearResponse::new(&moved_player, &moved_job, &moved_position, &moved_appearence, false);
+                    if position.is_in_sight(moved_position) {
+                        let player_appear = PlayerAppearResponse::new(moved_player, moved_job, moved_position, moved_appearence, false);
                         socket_writer.write(&mut (&player_appear).into());
-                        let player_appear = PlayerAppearResponse::new(&player, &job, &position, &appearence, false);
+                        let player_appear = PlayerAppearResponse::new(player, job, position, appearence, false);
                         moved_socket_writer.write(&mut (&player_appear).into());
                     }
                 }
@@ -55,7 +55,7 @@ fn handle_player_walking(mut commands: Commands, moved_query: Query<(Entity, &Pl
     for (entity, walking_player, walking_position, walking) in &moved_query {
         for (player, position, socket_writer) in &players_query {
             if walking_player.id != player.id {
-                if position.is_in_sight(&walking_position) {
+                if position.is_in_sight(walking_position) {
                     if walking.done {
                         let player_walk = PlayerStopWalkingResponse { 
                             player_id: walking_player.id, 

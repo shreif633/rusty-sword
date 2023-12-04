@@ -28,7 +28,7 @@ pub struct ListPlayerCharactersResponse {
 }
 
 impl ListPlayerCharactersResponse {
-    pub fn new(player_rows: &Vec<PlayerRow>) -> Self {
+    pub fn new(player_rows: &[PlayerRow]) -> Self {
         let characters = player_rows.iter().map(|player_row| {
             PlayerCharacter { 
             id: player_row.id, 

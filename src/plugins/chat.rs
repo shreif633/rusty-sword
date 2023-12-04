@@ -19,7 +19,7 @@ fn handle_chat_message(mut commands: Commands, emote_query: Query<(Entity, &Chat
             message: client_packet.message.clone()
         };
         for (position, socket_writer) in &players_query {
-            if position.is_in_sight(&chatting_position) {
+            if position.is_in_sight(chatting_position) {
                 socket_writer.write(&mut (&chat_message).into());
             }
         }

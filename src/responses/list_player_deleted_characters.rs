@@ -17,7 +17,7 @@ pub struct ListPlayerDeletedCharactersResponse {
 }
 
 impl ListPlayerDeletedCharactersResponse {
-    pub fn new(player_rows: &Vec<PlayerRow>) -> Self {
+    pub fn new(player_rows: &[PlayerRow]) -> Self {
         let characters = player_rows.iter().map(|player_row| {
             PlayerDeletedCharacter { 
                 id: player_row.id, 
