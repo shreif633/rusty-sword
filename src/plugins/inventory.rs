@@ -68,7 +68,7 @@ fn unequip_item(mut commands: Commands, mut query: Query<(Entity, &UnequipItemRe
         if let Some(equiped_item_id) = weapon.item_id {
             if let Some(item_entity) = items_map.map.get(&unequip_item.item_id) {
                 if let Ok((item, player_owner)) = items_query.get(*item_entity) {
-                    if player_owner.player == entity && item.id == equiped_item_id as i32 {
+                    if player_owner.player == entity && item.id == equiped_item_id {
                         weapon.item_id = None;
                     }
                 }

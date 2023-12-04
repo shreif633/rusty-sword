@@ -1,4 +1,8 @@
-use crate::{framework::packet::Packet, components::{extra_points::ExtraPoints, current_health_points::{self, CurrentHealthPoints}, maximum_health_points::{self, MaximumHealthPoints}, final_points::{self, FinalPoints}}};
+use crate::framework::packet::Packet;
+use crate::components::final_points::FinalPoints;
+use crate::components::maximum_health_points::MaximumHealthPoints;
+use crate::components::current_health_points::CurrentHealthPoints;
+use crate::components::extra_points::ExtraPoints;
 
 pub const HEADER: u8 = 69;
 pub const SUB_HEADER: u8 = 44;

@@ -1,5 +1,5 @@
-use crate::components::current_magic_points::{self, CurrentMagicPoints};
-use crate::components::maximum_magic_points::{self, MaximumMagicPoints};
+use crate::components::current_magic_points::CurrentMagicPoints;
+use crate::components::maximum_magic_points::MaximumMagicPoints;
 use crate::framework::packet::Packet;
 use crate::components::final_points::FinalPoints;
 use crate::components::magical_attack::MagicalAttack;

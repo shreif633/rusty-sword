@@ -24,7 +24,7 @@ use crate::plugins::tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServ
 use crate::plugins::visual_effects::VisualEffectPlugin;
 use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc::{self}};
 use crate::framework::packet_queue::PacketQueue;
-use bevy::diagnostic::*;
+
 
 async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
     tokio::spawn(async move {
@@ -55,9 +55,6 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(VisualEffectPlugin)
             .add_plugins(SpawnMonstersPlugin)
             .add_plugins(SpawnNpcsPlugin)
-            .add_plugins(FrameTimeDiagnosticsPlugin::default())
-            // .add_plugins(LogDiagnosticsPlugin::default())
-            // .add_systems(Update, fps_text_update_system)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)
@@ -67,19 +64,9 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .insert_resource(monsters_map)
             .insert_resource(items_map)
             .insert_resource(database)
+            //.add_plugins(crate::plugins::framerate::Framerate)
             .run();
     });
-}
-
-fn fps_text_update_system(
-    diagnostics: Res<DiagnosticsStore>,
-) {
-    if let Some(value) = diagnostics
-        .get(FrameTimeDiagnosticsPlugin::FPS)
-        .and_then(|fps| fps.smoothed())
-    {
-        println!("fps: {}", value)
-    }
 }
 
 async fn start_tcp_server(address: &str, socket_queue: Arc<Mutex<Vec<SocketPair>>>) {

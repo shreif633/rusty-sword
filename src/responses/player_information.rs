@@ -1,4 +1,15 @@
-use crate::{framework::packet::Packet, components::{base_points::BasePoints, current_health_points::CurrentHealthPoints, player::Player, maximum_health_points::{self, MaximumHealthPoints}, current_magic_points::{self, CurrentMagicPoints}, maximum_magic_points::{self, MaximumMagicPoints}, final_points::FinalPoints, experience::{self, Experience}, physical_attack::PhysicalAttack, magical_attack::{self, MagicalAttack}, rage::Rage}};
+use crate::components::base_points::BasePoints;
+use crate::components::current_health_points::CurrentHealthPoints;
+use crate::components::player::Player;
+use crate::components::maximum_health_points::MaximumHealthPoints;
+use crate::components::rage::Rage;
+use crate::components::magical_attack::MagicalAttack;
+use crate::components::physical_attack::PhysicalAttack;
+use crate::components::experience::Experience;
+use crate::components::final_points::FinalPoints;
+use crate::components::maximum_magic_points::MaximumMagicPoints;
+use crate::components::current_magic_points::CurrentMagicPoints;
+use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 66;
 
