@@ -1,4 +1,7 @@
 use crate::framework::packet::Packet;
+use crate::components::physical_attack::PhysicalAttack;
+use crate::components::final_points::FinalPoints;
+use crate::components::extra_points::ExtraPoints;
 
 pub const HEADER: u8 = 69;
 pub const SUB_HEADER: u8 = 47;
@@ -11,6 +14,19 @@ pub struct PlayerExtraAgilityResponse {
     pub unknown_evasion_copy: u16,
     pub minimum_physical_attack: u16,
     pub maximum_physical_attack: u16,
+}
+
+impl PlayerExtraAgilityResponse {
+    pub fn new(extra_points: &ExtraPoints, final_points: &FinalPoints, physical_attack: &PhysicalAttack) -> Self {
+        PlayerExtraAgilityResponse {
+            extra_agility: extra_points.extra_agility, 
+            on_target_point: final_points.on_target_point, 
+            evasion: final_points.evasion, 
+            unknown_evasion_copy: final_points.evasion, 
+            minimum_physical_attack: physical_attack.minimum_physical_attack, 
+            maximum_physical_attack: physical_attack.maximum_physical_attack
+        }
+    }
 }
 
 impl From<&mut Packet> for PlayerExtraAgilityResponse {

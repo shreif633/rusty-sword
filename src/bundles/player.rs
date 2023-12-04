@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::components::id::Id;
 use crate::repositories::player::PlayerRow;
 use crate::components::equipped_weapon::EquippedWeapon;
 use crate::components::appearence::Appearence;
@@ -15,13 +16,12 @@ use crate::components::previous::Previous;
 use crate::components::final_points::FinalPoints;
 use crate::components::extra_points::ExtraPoints;
 use crate::components::base_points::BasePoints;
-use crate::components::job::Job;
 use crate::components::player::Player;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
+    id: Id,
     player: Player,
-    job: Job,
     base_points: BasePoints,
     extra_points: ExtraPoints,
     final_points: FinalPoints,
@@ -42,10 +42,10 @@ pub struct PlayerBundle {
 }
 
 impl PlayerBundle {
-    pub fn from(player_row: &PlayerRow) -> Self {
+    pub fn new(player_row: &PlayerRow) -> Self {
         PlayerBundle {
+            id: Id { id: player_row.id },
             player: Player::from(player_row),
-            job: Job::from(player_row),
             base_points: BasePoints::from(player_row),
             extra_points: ExtraPoints::from(player_row),
             final_points: FinalPoints::from(player_row),

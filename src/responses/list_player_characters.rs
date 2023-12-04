@@ -5,7 +5,7 @@ pub const HEADER: u8 = 17;
 
 #[derive(Debug)]
 pub struct PlayerCharacter {
-    pub id: u32,
+    pub id: i32,
     pub name: String,
     pub class: u8,
     pub specialty: u8,
@@ -31,21 +31,21 @@ impl ListPlayerCharactersResponse {
     pub fn new(player_rows: &[PlayerRow]) -> Self {
         let characters = player_rows.iter().map(|player_row| {
             PlayerCharacter { 
-            id: player_row.id, 
-            name: player_row.name.clone(), 
-            class: player_row.class, 
-            specialty: player_row.specialty, 
-            level: player_row.level, 
-            unknown1: vec![0, 0, 0, 0],
-            base_strength: player_row.base_strength, 
-            base_health: player_row.base_health, 
-            base_intelligence: player_row.base_intelligence, 
-            base_wisdom: player_row.base_wisdom, 
-            base_agility: player_row.base_agility, 
-            face: player_row.level, 
-            hair: player_row.level,
-            items_indexes: vec![]
-        }
+                id: player_row.id, 
+                name: player_row.name.clone(), 
+                class: player_row.class, 
+                specialty: player_row.specialty, 
+                level: player_row.level, 
+                unknown1: vec![0, 0, 0, 0],
+                base_strength: player_row.base_strength, 
+                base_health: player_row.base_health, 
+                base_intelligence: player_row.base_intelligence, 
+                base_wisdom: player_row.base_wisdom, 
+                base_agility: player_row.base_agility, 
+                face: player_row.level, 
+                hair: player_row.level,
+                items_indexes: vec![]
+            }
         }).collect();
         ListPlayerCharactersResponse { unknown1: vec![0, 0, 0, 0, 0], characters }
     }
@@ -57,7 +57,7 @@ impl From<&mut Packet> for ListPlayerCharactersResponse {
         let characters_count = packet.get_u8();
         let mut characters = Vec::<PlayerCharacter>::with_capacity(characters_count as usize);
         for _ in 0..characters_count {
-            let id = packet.get_u32();
+            let id = packet.get_i32();
             let name = packet.get_string();
             let class = packet.get_u8();
             let specialty = packet.get_u8();
@@ -93,7 +93,7 @@ impl From<&ListPlayerCharactersResponse> for Packet {
         packet.write_buffer(&val.unknown1);
         packet.write_u8(val.characters.len().try_into().unwrap());
         for character in &val.characters {
-            packet.write_u32(character.id);
+            packet.write_i32(character.id);
             packet.write_string(&character.name);
             packet.write_u8(character.class);
             packet.write_u8(character.specialty);

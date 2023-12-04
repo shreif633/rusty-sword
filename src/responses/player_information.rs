@@ -1,4 +1,4 @@
-use crate::framework::packet::Packet;
+use crate::{framework::packet::Packet, components::{base_points::BasePoints, current_health_points::CurrentHealthPoints, player::Player, maximum_health_points::{self, MaximumHealthPoints}, current_magic_points::{self, CurrentMagicPoints}, maximum_magic_points::{self, MaximumMagicPoints}, final_points::FinalPoints, experience::{self, Experience}, physical_attack::PhysicalAttack, magical_attack::{self, MagicalAttack}, rage::Rage}};
 
 pub const HEADER: u8 = 66;
 
@@ -34,6 +34,55 @@ pub struct PlayerInformationResponse {
     pub curse_resistence: u8, 
     pub non_elemental_resistence: u8,
     pub rage: u32,
+}
+
+impl PlayerInformationResponse {
+    pub fn new(
+        player: &Player, 
+        base_points: &BasePoints, 
+        current_health_points: &CurrentHealthPoints, 
+        maximum_health_points: &MaximumHealthPoints, 
+        current_magic_points: &CurrentMagicPoints, 
+        maximum_magic_points: &MaximumMagicPoints, 
+        final_points: &FinalPoints,
+        experience: &Experience,
+        physical_attack: &PhysicalAttack,
+        magical_attack: &MagicalAttack,
+        rage: &Rage
+    ) -> Self {
+        PlayerInformationResponse { 
+            specialization: player.specialty, 
+            unknown1: vec![0, 0], 
+            contribution: 9, 
+            base_strength: base_points.base_strength, 
+            base_health: base_points.base_health, 
+            base_intelligence: base_points.base_intelligence, 
+            base_wisdom: base_points.base_wisdom, 
+            base_agility: base_points.base_agility, 
+            current_health_points: current_health_points.current_health_points, 
+            maximum_health_points: maximum_health_points.maximum_health_points, 
+            current_magic_points: current_magic_points.current_magic_points, 
+            maximum_magic_points: maximum_magic_points.maximum_magic_points, 
+            on_target_point: final_points.on_target_point, 
+            evasion: final_points.evasion, 
+            defense: final_points.defense, 
+            absorption: final_points.absorption, 
+            experience: experience.experience,
+            unknown2: vec![0, 0, 0], 
+            minimum_physical_attack: physical_attack.minimum_physical_attack, 
+            maximum_physical_attack: physical_attack.maximum_physical_attack, 
+            minimum_magical_attack: magical_attack.minimum_magical_attack, 
+            maximum_magical_attack: magical_attack.maximum_magical_attack, 
+            status_points: 20, 
+            skill_points: 44, 
+            fire_resistence: final_points.fire_resistence.try_into().unwrap(), 
+            ice_resistence: final_points.ice_resistence.try_into().unwrap(), 
+            lighning_resistence: final_points.lighning_resistence.try_into().unwrap(), 
+            curse_resistence: final_points.curse_resistence.try_into().unwrap(), 
+            non_elemental_resistence: final_points.non_elemental_resistence.try_into().unwrap(), 
+            rage: rage.rage 
+        }
+    }
 }
 
 impl From<&mut Packet> for PlayerInformationResponse {

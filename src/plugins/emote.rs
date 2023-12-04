@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::components::player::Player;
+use crate::components::id::Id;
 use crate::components::position::Position;
 use crate::components::walking::Walking;
 use crate::requests::emote::EmoteRequest;
@@ -14,11 +14,11 @@ impl Plugin for EmotePlugin {
     }
 }
 
-fn handle_emote(mut commands: Commands, emote_query: Query<(Entity, &Player, &EmoteRequest, &Position, Option<&Walking>)>, players_query: Query<(&Position, &SocketWriter)>) {
-    for (entity, emote_player, client_packet, emote_position, walking) in &emote_query {
+fn handle_emote(mut commands: Commands, emote_query: Query<(Entity, &Id, &EmoteRequest, &Position, Option<&Walking>)>, players_query: Query<(&Position, &SocketWriter)>) {
+    for (entity, emote_id, client_packet, emote_position, walking) in &emote_query {
         if walking.is_none() {
             let emote = EmoteResponse { 
-                player_id: emote_player.id, 
+                player_id: emote_id.id, 
                 emote_index: client_packet.emote_index
             };
             for (position, socket_writer) in &players_query {

@@ -5,7 +5,7 @@ pub const SUB_HEADER: u32 = 239;
 
 #[derive(Debug)]
 pub struct VisualEffectResponse {
-    pub target_id: u32,
+    pub target_id: i32,
     pub effect_name: String,
     pub remove_automatically: u32,
     pub continuous: u32,
@@ -14,7 +14,7 @@ pub struct VisualEffectResponse {
 }
 
 impl VisualEffectResponse {
-    pub fn new(target_id: u32, target_type: TargetType, effect_name: &str) -> Self {
+    pub fn new(target_id: i32, target_type: TargetType, effect_name: &str) -> Self {
         VisualEffectResponse { 
             target_id, 
             effect_name: effect_name.to_string(), 
@@ -28,7 +28,7 @@ impl VisualEffectResponse {
 
 impl From<&mut Packet> for VisualEffectResponse {
     fn from(packet: &mut Packet) -> Self {
-        let target_id = packet.get_u32();
+        let target_id = packet.get_i32();
         let effect_name = packet.get_string();
         let remove_automatically = packet.get_u32();
         let continuous = packet.get_u32();
@@ -42,7 +42,7 @@ impl From<&VisualEffectResponse> for Packet {
     fn from(val: &VisualEffectResponse) -> Self {
         let mut packet = Packet::from(HEADER);
         packet.write_u32(SUB_HEADER);
-        packet.write_u32(val.target_id);
+        packet.write_i32(val.target_id);
         packet.write_string(&val.effect_name);
         packet.write_u32(val.remove_automatically);
         packet.write_u32(val.continuous);

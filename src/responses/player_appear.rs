@@ -1,5 +1,5 @@
 use crate::components::appearence::Appearence;
-use crate::components::job::Job;
+use crate::components::id::Id;
 use crate::components::player::Player;
 use crate::components::position::Position;
 use crate::framework::packet::Packet;
@@ -9,7 +9,7 @@ pub const HEADER: u8 = 50;
 
 #[derive(Debug)]
 pub struct PlayerAppearResponse {
-    pub player_id: u32,
+    pub id: i32,
     pub name: String,
     pub class: PlayerClass,
     pub is_current_player: bool,
@@ -31,11 +31,11 @@ pub struct PlayerAppearResponse {
 }
 
 impl PlayerAppearResponse {
-    pub fn new(player: &Player, job: &Job, position: &Position, appearence: &Appearence, is_current_player: bool) -> Self {
+    pub fn new(id: &Id, player: &Player, position: &Position, appearence: &Appearence, is_current_player: bool) -> Self {
         PlayerAppearResponse { 
-            player_id: player.id, 
+            id: id.id, 
             name: appearence.name.clone(), 
-            class: job.class, 
+            class: player.class, 
             is_current_player,
             x: position.x, 
             y: position.y, 
@@ -58,7 +58,7 @@ impl PlayerAppearResponse {
 
 impl From<&mut Packet> for PlayerAppearResponse {
     fn from(packet: &mut Packet) -> Self {
-        let player_id = packet.get_u32();
+        let id = packet.get_i32();
         let name = packet.get_string();
         let class = packet.get_u8();
         let (class, is_current_player) = match class {
@@ -84,14 +84,14 @@ impl From<&mut Packet> for PlayerAppearResponse {
         let face = packet.get_u8();
         let hair = packet.get_u8();
         let unknown3 = packet.get_buffer(54);
-        PlayerAppearResponse { player_id, name, x, y, z, unknown1, helmet_index, chest_index, shorts_index, gloves_index, boots_index, unknown2, face, hair, unknown3, weapon_index, shield_index, class, is_current_player }
+        PlayerAppearResponse { id, name, x, y, z, unknown1, helmet_index, chest_index, shorts_index, gloves_index, boots_index, unknown2, face, hair, unknown3, weapon_index, shield_index, class, is_current_player }
     }
 }
 
 impl From<&PlayerAppearResponse> for Packet {
     fn from(val: &PlayerAppearResponse) -> Self {
         let mut packet = Packet::from(HEADER);
-        packet.write_u32(val.player_id);
+        packet.write_i32(val.id);
         packet.write_string(&val.name);
         if val.is_current_player {
             packet.write_u8(u8::from(val.class) + 128);

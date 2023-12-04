@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use sqlx::query;
-use crate::{framework::database::Database, responses::player_skills::PlayerSkillsResponse, components::player::Player};
+use crate::components::player::Player;
+use crate::components::id::Id;
+use crate::responses::player_skills::PlayerSkillsResponse;
+use crate::framework::database::Database;
 use super::tcp_server::SocketWriter;
 
 pub struct SkillsPlugin;
@@ -22,7 +25,7 @@ struct Skills {
     skills: Vec<Skill>
 }
 
-fn query_player_skills(database: &Database, player_id: u32) -> Vec<Skill> {
+fn query_player_skills(database: &Database, player_id: i32) -> Vec<Skill> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let rows = rt.block_on(async move {
         query!("SELECT * FROM skills WHERE player_id = ?", player_id).fetch_all(&database.connection).await.unwrap()
@@ -39,9 +42,9 @@ fn query_player_skills(database: &Database, player_id: u32) -> Vec<Skill> {
     skills
 }
 
-fn load_skills(mut commands: Commands, query: Query<(Entity, &Player, &SocketWriter), Without<Skills>>, database: Res<Database>) {
-    for (entity, player, socket_writer) in &query {
-        let player_skills = query_player_skills(&database, player.id);
+fn load_skills(mut commands: Commands, query: Query<(Entity, &Id, &SocketWriter), (With<Player>, Without<Skills>)>, database: Res<Database>) {
+    for (entity, id, socket_writer) in &query {
+        let player_skills = query_player_skills(&database, id.id);
         let skills: Vec<crate::responses::player_skills::Skill> = player_skills.iter().map(|i| crate::responses::player_skills::Skill { 
             index: i.index, 
             grade: i.grade, 

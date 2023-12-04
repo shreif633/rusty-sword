@@ -4,8 +4,8 @@ use crate::enums::player_class::PlayerClass;
 use crate::framework::database::Database;
 
 pub struct PlayerRow {
-    pub id: u32,
-    pub user_id: u32,
+    pub id: i32,
+    pub user_id: i32,
     pub name: String,
     pub class: u8,
     pub level: u8,
@@ -54,7 +54,7 @@ pub struct PlayerRow {
     pub non_elemental_resistence: u16,
 }
 
-pub fn find_user_player_by_id(database: &Database, user_id: u32, player_id: u32) -> Option<PlayerRow> {
+pub fn find_user_player_by_id(database: &Database, user_id: i32, player_id: i32) -> Option<PlayerRow> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let row = rt.block_on(async move {
         let result = query!("SELECT * FROM players WHERE id = ? AND user_id = ? AND deleted_at IS NULL", player_id, user_id).fetch_one(&database.connection).await;
@@ -118,7 +118,7 @@ pub fn find_user_player_by_id(database: &Database, user_id: u32, player_id: u32)
     }
 }
 
-pub fn delete_user_player_by_id(database: &Database, user_id: u32, character_id: u32) {
+pub fn delete_user_player_by_id(database: &Database, user_id: i32, character_id: i32) {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     rt.block_on(async move {
         let now = Local::now().naive_utc();
@@ -126,7 +126,7 @@ pub fn delete_user_player_by_id(database: &Database, user_id: u32, character_id:
     });
 }
 
-pub fn restore_user_player_by_id(database: &Database, user_id: u32, character_id: u32) {
+pub fn restore_user_player_by_id(database: &Database, user_id: i32, character_id: i32) {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     rt.block_on(async move {
         query!("UPDATE players SET deleted_at = NULL WHERE user_id = ? AND id = ?", user_id, character_id).execute(&database.connection).await.unwrap()
@@ -140,14 +140,14 @@ pub fn find_player_exists_by_name(database: &Database, name: &str) -> bool {
     }) > 0
 }
 
-pub fn count_user_players(database: &Database, user_id: u32) -> i32 {
+pub fn count_user_players(database: &Database, user_id: i32) -> i32 {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     rt.block_on(async move {
         query_scalar!("SELECT COUNT(*) FROM players WHERE user_id = ? AND DELETED_AT IS NULL", user_id).fetch_one(&database.connection).await.unwrap()
     })
 }
 
-pub fn find_all_deleted_user_players(database: &Database, user_id: u32) -> Vec<PlayerRow> {
+pub fn find_all_deleted_user_players(database: &Database, user_id: i32) -> Vec<PlayerRow> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let rows = rt.block_on(async move {
         query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NOT NULL", user_id).fetch_all(&database.connection).await.unwrap()
@@ -206,7 +206,7 @@ pub fn find_all_deleted_user_players(database: &Database, user_id: u32) -> Vec<P
     }).collect()
 }
 
-pub fn find_all_user_players(database: &Database, user_id: u32) -> Vec<PlayerRow> {
+pub fn find_all_user_players(database: &Database, user_id: i32) -> Vec<PlayerRow> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let rows = rt.block_on(async move {
         query!("SELECT * FROM players WHERE user_id = ? AND deleted_at IS NULL", user_id).fetch_all(&database.connection).await.unwrap()
@@ -266,7 +266,7 @@ pub fn find_all_user_players(database: &Database, user_id: u32) -> Vec<PlayerRow
 }
 
 pub struct PlayerCreateChangeset<'a> {
-    pub user_id: u32,
+    pub user_id: i32,
     pub name: &'a str,
     pub class: PlayerClass,
     pub experience: u32,
@@ -283,7 +283,7 @@ pub struct PlayerCreateChangeset<'a> {
     pub map: u8
 }
 
-pub fn create_player(database: &Database, changeset: &PlayerCreateChangeset) -> Option<u32> {
+pub fn create_player(database: &Database, changeset: &PlayerCreateChangeset) -> Option<i32> {
     let class = u8::from(changeset.class);
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let player_id = rt.block_on(async move {
@@ -294,12 +294,12 @@ pub fn create_player(database: &Database, changeset: &PlayerCreateChangeset) -> 
         RETURNING id
         ", changeset.user_id, changeset.name, class, 1, changeset.experience, changeset.base_strength, changeset.base_health, changeset.base_intelligence, changeset.base_wisdom, changeset.base_agility, changeset.face, changeset.hair, changeset.x, changeset.y, changeset.z, 0, 0, 0, 0, 0, 0, 0, 1000, 2000, 1000, 2000, 0, 0)
         .fetch_one(&database.connection).await.unwrap()
-    }) as u32;
+    }) as i32;
     Some(player_id)
 }
 
 pub struct PlayerUpdatePositionChangeset {
-    pub id: u32,
+    pub id: i32,
     pub x: u32,
     pub y: u32,
     pub z: u32,

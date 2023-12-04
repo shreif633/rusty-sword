@@ -5,7 +5,7 @@ pub const HEADER: u8 = 4;
 #[derive(Debug)]
 pub struct InventoryItem {
     pub index: u16,
-    pub id: u32,
+    pub id: i32,
     pub prefix: u8,
     pub info: u32,
     pub quantity: u32,
@@ -31,11 +31,11 @@ pub struct InventoryResponse {
 }
 
 impl InventoryResponse {
-    pub fn new(items: Vec<(u32, Item)>) -> Self {
-        let items = items.iter().map(|(entity_id, item)| {
+    pub fn new(items: Vec<Item>) -> Self {
+        let items = items.iter().map(|item| {
             InventoryItem { 
                 index: item.index, 
-                id: *entity_id, 
+                id: item.id, 
                 prefix: item.prefix, 
                 info: 0, 
                 quantity: 100,
@@ -65,7 +65,7 @@ impl From<&mut Packet> for InventoryResponse {
         let mut items = Vec::<InventoryItem>::with_capacity(items_count);
         for _ in 0..items_count {
             let index = packet.get_u16();
-            let id = packet.get_u32();
+            let id = packet.get_i32();
             let prefix = packet.get_u8();
             let info = packet.get_u32();
             let quantity = packet.get_u32();
@@ -102,7 +102,7 @@ impl From<&InventoryResponse> for Packet {
         packet.write_u16(val.items.len().try_into().unwrap());
         for item in &val.items {
             packet.write_u16(item.index);
-            packet.write_u32(item.id);
+            packet.write_i32(item.id);
             packet.write_u8(item.prefix);
             packet.write_u32(item.info);
             packet.write_u32(item.quantity);

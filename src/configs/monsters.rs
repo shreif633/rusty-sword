@@ -43,7 +43,7 @@ pub struct Spawn {
     pub bottom_y: u32, 
     pub top_x: u32, 
     pub top_y: u32,
-    pub quantity: u8,  
+    pub quantity: u32,  
 }
 
 pub fn read_config(monster_name: &str) -> MonsterConfig {

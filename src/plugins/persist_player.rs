@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::components::id::Id;
 use crate::repositories::player::{PlayerUpdatePositionChangeset, update_all_player_position_by_id};
 use crate::components::position::Position;
 use crate::components::player::Player;
@@ -24,7 +25,7 @@ fn create_persist_player_timer(mut commands: Commands) {
 
 fn persist_player(
     mut timer: Query<&mut PersistPlayerTimer>, 
-    players_query: Query<(&Player, &Position)>, 
+    players_query: Query<(&Id, &Position), With<Player>>, 
     time: Res<Time>,
     database: Res<Database>
 ) {
@@ -32,8 +33,8 @@ fn persist_player(
     timer.timer.tick(time.delta());
     if timer.timer.just_finished() {
         let mut changesets = Vec::<PlayerUpdatePositionChangeset>::new();
-        for (player, position) in &players_query {
-            let changeset = PlayerUpdatePositionChangeset { id: player.id, x: position.x, y: position.y, z: position.z };
+        for (id, position) in &players_query {
+            let changeset = PlayerUpdatePositionChangeset { id: id.id, x: position.x, y: position.y, z: position.z };
             changesets.push(changeset);
         }
         update_all_player_position_by_id(&database, &changesets);

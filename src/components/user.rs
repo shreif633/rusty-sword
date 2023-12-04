@@ -4,7 +4,7 @@ use crate::repositories::user::UserRow;
 
 #[derive(Component)]
 pub struct User {
-    pub id: u32,
+    pub id: i32,
 }
 
 impl From<&UserRow> for User {

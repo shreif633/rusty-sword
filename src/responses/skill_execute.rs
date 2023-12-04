@@ -14,8 +14,8 @@ pub enum DamageType {
 #[derive(Debug)]
 pub struct SkillExecuteResponse {
     pub skill_index: u8,
-    pub player_id: u32,
-    pub target_id: u32,
+    pub player_id: i32,
+    pub target_id: i32,
     pub target_type: TargetType,
     pub unknown: u8,
     pub normal_damage: Option<u16>,
@@ -27,8 +27,8 @@ pub struct SkillExecuteResponse {
 impl From<&mut Packet> for SkillExecuteResponse {
     fn from(packet: &mut Packet) -> Self {
         let skill_index = packet.get_u8();
-        let player_id = packet.get_u32();
-        let target_id = packet.get_u32();
+        let player_id = packet.get_i32();
+        let target_id = packet.get_i32();
         let target_type = packet.get_u8();
         let target_type = match target_type {
             0 => TargetType::Player,
@@ -60,8 +60,8 @@ impl From<&SkillExecuteResponse> for Packet {
     fn from(val: &SkillExecuteResponse) -> Self {
         let mut packet = Packet::from(HEADER);
         packet.write_u8(val.skill_index);
-        packet.write_u32(val.player_id);
-        packet.write_u32(val.target_id);
+        packet.write_i32(val.player_id);
+        packet.write_i32(val.target_id);
         match val.target_type {
             TargetType::Player => packet.write_u8(0),
             TargetType::Monster => packet.write_u8(1) 

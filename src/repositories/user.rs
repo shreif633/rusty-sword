@@ -3,7 +3,7 @@ use sqlx::{query_scalar, query};
 use crate::framework::database::Database;
 
 pub struct UserRow {
-    pub id: u32,
+    pub id: i32,
     pub username: String,
     pub password_hash: String,
     pub email: String

@@ -1,4 +1,4 @@
-use crate::framework::packet::Packet;
+use crate::{framework::packet::Packet, components::{extra_points::ExtraPoints, current_health_points::{self, CurrentHealthPoints}, maximum_health_points::{self, MaximumHealthPoints}, final_points::{self, FinalPoints}}};
 
 pub const HEADER: u8 = 69;
 pub const SUB_HEADER: u8 = 44;
@@ -9,6 +9,22 @@ pub struct PlayerExtraHealthResponse {
     pub current_health_points: u32,
     pub maximum_health_points: u32,
     pub non_elemental_resistence: u16,
+}
+
+impl PlayerExtraHealthResponse {
+    pub fn new(
+        extra_points: &ExtraPoints, 
+        current_health_points: &CurrentHealthPoints,
+        maximum_health_points: &MaximumHealthPoints, 
+        final_points: &FinalPoints
+    ) -> Self {
+        PlayerExtraHealthResponse { 
+            extra_health: extra_points.extra_health, 
+            current_health_points: current_health_points.current_health_points, 
+            maximum_health_points: maximum_health_points.maximum_health_points, 
+            non_elemental_resistence: final_points.non_elemental_resistence 
+        }
+    }
 }
 
 impl From<&mut Packet> for PlayerExtraHealthResponse {

@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::components::direction::Direction;
+use crate::components::id::Id;
 use crate::components::npc::Npc;
 use crate::components::position::Position;
 use crate::framework::packet::Packet;
@@ -8,27 +8,27 @@ pub const HEADER: u8 = 52;
 
 #[derive(Debug)]
 pub struct NpcAppearResponse {
-    pub npc_id: u32,
-    pub npc_index: u16,
-    pub npc_shape: u8,
-    pub npc_x: u32,
-    pub npc_y: u32,
-    pub npc_z: u32,
-    pub npc_direction: u16,
+    pub id: i32,
+    pub index: u16,
+    pub shape: u8,
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+    pub direction: u16,
     pub general_state: i64,
     pub flag: u32,
 }
 
 impl NpcAppearResponse {
-    pub fn new(entity: Entity, npc: &Npc, position: &Position, direction: &Direction) -> Self {
+    pub fn new(id: &Id, npc: &Npc, position: &Position, direction: &Direction) -> Self {
         NpcAppearResponse {
-            npc_id: entity.index(),
-            npc_index: npc.index,
-            npc_shape: npc.shape,
-            npc_x: position.x,
-            npc_y: position.y,
-            npc_z: position.z,
-            npc_direction: direction.direction,
+            id: id.id,
+            index: npc.index,
+            shape: npc.shape,
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            direction: direction.direction,
             general_state: 0,
             flag: 0,
         }
@@ -37,32 +37,32 @@ impl NpcAppearResponse {
 
 impl From<&mut Packet> for NpcAppearResponse {
     fn from(packet: &mut Packet) -> Self {
-        let npc_id = packet.get_u32();
-        let npc_index = packet.get_u16();
-        let npc_shape = packet.get_u8();
-        let npc_x = packet.get_u32();
-        let npc_y = packet.get_u32();
-        let npc_z = packet.get_u32();
-        if npc_index == 205 {
+        let id = packet.get_i32();
+        let index = packet.get_u16();
+        let shape = packet.get_u8();
+        let x = packet.get_u32();
+        let y = packet.get_u32();
+        let z = packet.get_u32();
+        if index == 205 {
             println!("pkt 205: {:?}", packet);
         }
-        let npc_direction = packet.get_u16();
+        let direction = packet.get_u16();
         let general_state = packet.get_i64();
         let flag = packet.get_u32();
-        NpcAppearResponse { npc_id, npc_index, npc_shape, npc_x, npc_y, npc_z, npc_direction, general_state, flag }
+        NpcAppearResponse { id, index, shape, x, y, z, direction, general_state, flag }
     }
 }
 
 impl From<&NpcAppearResponse> for Packet {
     fn from(val: &NpcAppearResponse) -> Self {
         let mut packet = Packet::from(HEADER);
-        packet.write_u32(val.npc_id);
-        packet.write_u16(val.npc_index);
-        packet.write_u8(val.npc_shape);
-        packet.write_u32(val.npc_x);
-        packet.write_u32(val.npc_y);
-        packet.write_u32(val.npc_z);
-        packet.write_u16(val.npc_direction);
+        packet.write_i32(val.id);
+        packet.write_u16(val.index);
+        packet.write_u8(val.shape);
+        packet.write_u32(val.x);
+        packet.write_u32(val.y);
+        packet.write_u32(val.z);
+        packet.write_u16(val.direction);
         packet.write_i64(val.general_state);
         packet.write_u32(val.flag);
         packet

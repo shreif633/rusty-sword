@@ -37,13 +37,13 @@ pub fn authenticate(database: &Database, socket_writer: &SocketWriter, username:
     user_row
 }
 
-pub fn list_characters(database: &Database, socket_writer: &SocketWriter, user_id: u32) {
+pub fn list_characters(database: &Database, socket_writer: &SocketWriter, user_id: i32) {
     let players = find_all_user_players(database, user_id);
     let list_player_characters = ListPlayerCharactersResponse::new(&players);
     socket_writer.write(&mut (&list_player_characters).into());
 }
 
-fn list_deleted_characters(database: &Database, socket_writer: &SocketWriter, user_id: u32) {
+fn list_deleted_characters(database: &Database, socket_writer: &SocketWriter, user_id: i32) {
     let players = find_all_deleted_user_players(database, user_id);
     let list_player_characters = ListPlayerDeletedCharactersResponse::new(&players);
     socket_writer.write(&mut (&list_player_characters).into());

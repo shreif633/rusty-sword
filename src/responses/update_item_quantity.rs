@@ -13,14 +13,14 @@ pub enum ItemQuantityAction {
 
 #[derive(Debug)]
 pub struct UpdateItemQuantityResponse {
-    pub item_id: u32,
+    pub item_id: i32,
     pub quantity: u32,
     pub action: ItemQuantityAction
 }
 
 impl From<&mut Packet> for UpdateItemQuantityResponse {
     fn from(packet: &mut Packet) -> Self {
-        let item_id = packet.get_u32();
+        let item_id = packet.get_i32();
         let quantity = packet.get_u32();
         let action = packet.get_u8();
         let action = match action {
@@ -41,7 +41,7 @@ impl From<&mut Packet> for UpdateItemQuantityResponse {
 impl From<&UpdateItemQuantityResponse> for Packet {
     fn from(val: &UpdateItemQuantityResponse) -> Self {
         let mut packet = Packet::from(HEADER);
-        packet.write_u32(val.item_id);
+        packet.write_i32(val.item_id);
         packet.write_u32(val.quantity);
         let action = match val.action {
             ItemQuantityAction::Buy => 7,

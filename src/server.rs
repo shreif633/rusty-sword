@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 use std::sync::{Mutex, Arc};
+use crate::components::item::Item;
+use crate::components::monster::Monster;
+use crate::components::player::Player;
 use crate::configs::{player_starter, items, monsters, npcs};
+use crate::framework::entity_map::EntityMap;
 use crate::plugins::medicine::MedicinePlugin;
 use crate::plugins::persist_item::PersistItemPlugin;
 use crate::plugins::player_health::PlayerHealthPlugin;
@@ -20,6 +24,7 @@ use crate::plugins::tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServ
 use crate::plugins::visual_effects::VisualEffectPlugin;
 use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc::{self}};
 use crate::framework::packet_queue::PacketQueue;
+use bevy::diagnostic::*;
 
 async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
     tokio::spawn(async move {
@@ -29,6 +34,9 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
         let items_config = items::load();
         let monsters_config = monsters::load();
         let npcs_config = npcs::load();
+        let players_map = EntityMap::<Player>::new();
+        let monsters_map = EntityMap::<Monster>::new();
+        let items_map = EntityMap::<Item>::new();
         App::new()
             .add_plugins(MinimalPlugins)
             .add_plugins(ServerSelectPlugin)
@@ -47,14 +55,31 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(VisualEffectPlugin)
             .add_plugins(SpawnMonstersPlugin)
             .add_plugins(SpawnNpcsPlugin)
+            .add_plugins(FrameTimeDiagnosticsPlugin::default())
+            // .add_plugins(LogDiagnosticsPlugin::default())
+            // .add_systems(Update, fps_text_update_system)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)
             .insert_resource(monsters_config)
             .insert_resource(npcs_config)
+            .insert_resource(players_map)
+            .insert_resource(monsters_map)
+            .insert_resource(items_map)
             .insert_resource(database)
             .run();
     });
+}
+
+fn fps_text_update_system(
+    diagnostics: Res<DiagnosticsStore>,
+) {
+    if let Some(value) = diagnostics
+        .get(FrameTimeDiagnosticsPlugin::FPS)
+        .and_then(|fps| fps.smoothed())
+    {
+        println!("fps: {}", value)
+    }
 }
 
 async fn start_tcp_server(address: &str, socket_queue: Arc<Mutex<Vec<SocketPair>>>) {

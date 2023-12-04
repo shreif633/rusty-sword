@@ -16,7 +16,7 @@ pub struct ItemRow {
     pub upgrade_rate: u8
 }
 
-pub fn find_all_items_by_player_id(database: &Database, player_id: u32) -> Vec<ItemRow> {
+pub fn find_all_items_by_player_id(database: &Database, player_id: i32) -> Vec<ItemRow> {
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
     let rows = rt.block_on(async move {
         query!("SELECT * FROM items WHERE player_id = ?", player_id).fetch_all(&database.connection).await.unwrap()
@@ -43,7 +43,7 @@ pub fn find_all_items_by_player_id(database: &Database, player_id: u32) -> Vec<I
 }
 
 pub struct ItemCreateChangeset {
-    pub player_id: u32,
+    pub player_id: i32,
     pub index: u16,
     pub prefix: u8,
     pub quantity: u32

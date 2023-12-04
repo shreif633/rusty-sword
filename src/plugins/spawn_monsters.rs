@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::configs::monsters::MonstersConfig;
+use crate::{configs::monsters::MonstersConfig, components::id::Id};
 use crate::bundles::monster::MonsterBundle;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
@@ -21,13 +21,16 @@ impl Plugin for SpawnMonstersPlugin {
 
 fn spawn_monsters(mut commands: Commands, monsters_configs: Res<MonstersConfig>) {
     let mut rng = thread_rng();
+    let mut monster_id: i32 = 0;
     for (monster_index, monster_config) in monsters_configs.config.iter() {
         for spawn in &monster_config.spawn {
             for _ in 0..spawn.quantity {
+                monster_id -= 1;
                 let random_x = rng.gen_range(spawn.bottom_x..spawn.top_x);
                 let random_y = rng.gen_range(spawn.bottom_y..spawn.top_y);
                 commands.spawn(
-                    MonsterBundle { 
+                    MonsterBundle {
+                        id: Id { id: monster_id },
                         monster: Monster { index: *monster_index }, 
                         previous_position: Previous::from(Position { x: random_x, y: random_y, z: 0 }), 
                         position: Position { x: random_x, y: random_y, z: 0 }, 
@@ -41,11 +44,11 @@ fn spawn_monsters(mut commands: Commands, monsters_configs: Res<MonstersConfig>)
     }
 }
 
-fn handle_position_change(moved_query: Query<(&Previous<Position>, &Position, &SocketWriter), Changed<Position>>, monsters_query: Query<(Entity, &Monster, &Position, &CurrentHealthPoints, &MaximumHealthPoints)>) {
+fn handle_position_change(moved_query: Query<(&Previous<Position>, &Position, &SocketWriter), Changed<Position>>, monsters_query: Query<(&Id, &Monster, &Position, &CurrentHealthPoints, &MaximumHealthPoints)>) {
     for (moved_previous_position, moved_position, moved_socket_writer) in &moved_query {
-        for (entity, monster, position, current_health_points, maximum_health_points) in &monsters_query {
+        for (id, monster, position, current_health_points, maximum_health_points) in &monsters_query {
             if !position.is_in_sight(&moved_previous_position.entity) && position.is_in_sight(moved_position) {
-                let player_appear = MonsterAppearResponse::new(entity, monster, position, current_health_points, maximum_health_points);
+                let player_appear = MonsterAppearResponse::new(id, monster, position, current_health_points, maximum_health_points);
                 moved_socket_writer.write(&mut (&player_appear).into());
             }
         }
