@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 use crate::components::direction::Direction;
-use crate::components::npc::NPC;
+use crate::components::npc::Npc;
 use crate::components::position::Position;
 use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 52;
 
 #[derive(Debug)]
-pub struct NPCAppearResponse {
+pub struct NpcAppearResponse {
     pub npc_id: u32,
     pub npc_index: u16,
     pub npc_shape: u8,
@@ -19,9 +19,9 @@ pub struct NPCAppearResponse {
     pub flag: u32,
 }
 
-impl NPCAppearResponse {
-    pub fn new(entity: Entity, npc: &NPC, position: &Position, direction: &Direction) -> Self {
-        NPCAppearResponse {
+impl NpcAppearResponse {
+    pub fn new(entity: Entity, npc: &Npc, position: &Position, direction: &Direction) -> Self {
+        NpcAppearResponse {
             npc_id: entity.index(),
             npc_index: npc.index,
             npc_shape: npc.shape,
@@ -35,7 +35,7 @@ impl NPCAppearResponse {
     }
 }
 
-impl From<&mut Packet> for NPCAppearResponse {
+impl From<&mut Packet> for NpcAppearResponse {
     fn from(packet: &mut Packet) -> Self {
         let npc_id = packet.get_u32();
         let npc_index = packet.get_u16();
@@ -49,12 +49,12 @@ impl From<&mut Packet> for NPCAppearResponse {
         let npc_direction = packet.get_u16();
         let general_state = packet.get_i64();
         let flag = packet.get_u32();
-        NPCAppearResponse { npc_id, npc_index, npc_shape, npc_x, npc_y, npc_z, npc_direction, general_state, flag }
+        NpcAppearResponse { npc_id, npc_index, npc_shape, npc_x, npc_y, npc_z, npc_direction, general_state, flag }
     }
 }
 
-impl From<&NPCAppearResponse> for Packet {
-    fn from(val: &NPCAppearResponse) -> Self {
+impl From<&NpcAppearResponse> for Packet {
+    fn from(val: &NpcAppearResponse) -> Self {
         let mut packet = Packet::from(HEADER);
         packet.write_u32(val.npc_id);
         packet.write_u16(val.npc_index);

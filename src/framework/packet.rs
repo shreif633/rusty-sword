@@ -104,10 +104,12 @@ impl Packet {
         self.buffer.extend_from_slice(&value.to_le_bytes());
     }
 
+    #[allow(dead_code)]
     pub fn write_i32(&mut self, value: i32) {
         self.buffer.extend_from_slice(&value.to_le_bytes());
     }
 
+    #[allow(dead_code)]
     pub fn get_i32(&mut self) -> i32 {
         let i = self.cursor as usize;
         let slice = &self.buffer[i..i + 4];

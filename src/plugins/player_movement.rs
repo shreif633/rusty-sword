@@ -37,15 +37,11 @@ fn handle_position_added(query: Query<(&Player, &Job, &Position, &Appearence, &S
 fn handle_position_change(moved_query: Query<(&Player, &Job, &Previous<Position>, &Position, &Appearence, &SocketWriter), Changed<Position>>, players_query: Query<(&Player, &Job, &Position, &Appearence, &SocketWriter)>) {
     for (moved_player, moved_job, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
         for (player, job, position, appearence, socket_writer) in &players_query {
-            if moved_player.id != player.id {
-                if !position.is_in_sight(&moved_previous_position.entity) {
-                    if position.is_in_sight(moved_position) {
-                        let player_appear = PlayerAppearResponse::new(moved_player, moved_job, moved_position, moved_appearence, false);
-                        socket_writer.write(&mut (&player_appear).into());
-                        let player_appear = PlayerAppearResponse::new(player, job, position, appearence, false);
-                        moved_socket_writer.write(&mut (&player_appear).into());
-                    }
-                }
+            if moved_player.id != player.id && !position.is_in_sight(&moved_previous_position.entity) && position.is_in_sight(moved_position) {
+                let player_appear = PlayerAppearResponse::new(moved_player, moved_job, moved_position, moved_appearence, false);
+                socket_writer.write(&mut (&player_appear).into());
+                let player_appear = PlayerAppearResponse::new(player, job, position, appearence, false);
+                moved_socket_writer.write(&mut (&player_appear).into());
             }
         }
     }
@@ -54,25 +50,23 @@ fn handle_position_change(moved_query: Query<(&Player, &Job, &Previous<Position>
 fn handle_player_walking(mut commands: Commands, moved_query: Query<(Entity, &Player, &Position, &Walking)>, players_query: Query<(&Player, &Position, &SocketWriter)>) {
     for (entity, walking_player, walking_position, walking) in &moved_query {
         for (player, position, socket_writer) in &players_query {
-            if walking_player.id != player.id {
-                if position.is_in_sight(walking_position) {
-                    if walking.done {
-                        let player_walk = PlayerStopWalkingResponse { 
-                            player_id: walking_player.id, 
-                            delta_x: walking.delta_x, 
-                            delta_y: walking.delta_y, 
-                            delta_z: walking.delta_z 
-                        };
-                        socket_writer.write(&mut (&player_walk).into());
-                    } else {
-                        let player_walk = PlayerWalkResponse { 
-                            player_id: walking_player.id, 
-                            delta_x: walking.delta_x, 
-                            delta_y: walking.delta_y, 
-                            delta_z: walking.delta_z 
-                        };
-                        socket_writer.write(&mut (&player_walk).into());
-                    }
+            if walking_player.id != player.id && position.is_in_sight(walking_position) {
+                if walking.done {
+                    let player_walk = PlayerStopWalkingResponse { 
+                        player_id: walking_player.id, 
+                        delta_x: walking.delta_x, 
+                        delta_y: walking.delta_y, 
+                        delta_z: walking.delta_z 
+                    };
+                    socket_writer.write(&mut (&player_walk).into());
+                } else {
+                    let player_walk = PlayerWalkResponse { 
+                        player_id: walking_player.id, 
+                        delta_x: walking.delta_x, 
+                        delta_y: walking.delta_y, 
+                        delta_z: walking.delta_z 
+                    };
+                    socket_writer.write(&mut (&player_walk).into());
                 }
             }
         }

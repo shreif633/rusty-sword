@@ -58,9 +58,5 @@ pub fn load() -> MonstersConfig {
     let mut monsters_config = MonstersConfig { config: HashMap::new() };
     let monster_config = read_config("demon_vulgar");
     monsters_config.config.insert(monster_config.monster.index, monster_config);
-    println!("{:?}", monsters_config);
-    // player_starter_config.config.insert(PlayerClass::Knight, read_config("knight"));
-    // player_starter_config.config.insert(PlayerClass::Mage, read_config("mage"));
-    // player_starter_config.config.insert(PlayerClass::Archer, read_config("archer"));
     monsters_config
 }

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::configs::npcs::NPCConfig;
+use crate::configs::npcs::NpcConfig;
 use crate::repositories::player::PlayerRow;
 
 #[derive(Component)]
@@ -19,8 +19,8 @@ impl From<&PlayerRow> for Position {
     }
 }
 
-impl From<&NPCConfig> for Position {
-    fn from(npc_config: &NPCConfig) -> Self {
+impl From<&NpcConfig> for Position {
+    fn from(npc_config: &NpcConfig) -> Self {
         Position { 
             x: npc_config.x, 
             y: npc_config.y, 
@@ -34,7 +34,7 @@ impl Position {
         let x_diff = self.x as f64 - other.x as f64;
         let y_diff = self.y as f64 - other.y as f64;
         // Euclidean distance formula: sqrt((x2 - x1)^2 + (y2 - y1)^2)
-        ((x_diff.powi(2) + y_diff.powi(2)) as f64).sqrt().round() as u32
+        (x_diff.powi(2) + y_diff.powi(2)).sqrt().round() as u32
     }
 
     pub fn is_in_range(&self, other: &Position, range: u32) -> bool {

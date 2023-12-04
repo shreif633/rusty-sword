@@ -51,10 +51,8 @@ fn equip_item(mut commands: Commands, mut query: Query<(Entity, &EquipItemReques
             if weapon_entity.index() == equip_item.item_id {
                 if weapon.item.is_some() {
                     weapon.item = None;
-                } else {
-                    if player_owner.player == entity {
-                        weapon.item = Some(weapon_entity);
-                    }
+                } else if player_owner.player == entity {
+                    weapon.item = Some(weapon_entity);
                 }
             }
         }
@@ -117,17 +115,15 @@ fn broadcast_weapon_change(mut query: Query<(&Player, &EquippedWeapon, &mut Prev
                     other_socket_writer.write(&mut (&equip_item).into());
                 }
             }
-        } else {
-            if let Some(item) = old_weapon.entity.item {
-                let unequip_item = UnequipItemResponse { 
-                    player_id: player.id, 
-                    item_id: item.index(), 
-                    item_index: 1 
-                };
-                for (other_position, other_socket_writer) in &players_query {
-                    if other_position.is_in_sight(position) {
-                        other_socket_writer.write(&mut (&unequip_item).into());
-                    }
+        } else if let Some(item) = old_weapon.entity.item {
+            let unequip_item = UnequipItemResponse { 
+                player_id: player.id, 
+                item_id: item.index(), 
+                item_index: 1 
+            };
+            for (other_position, other_socket_writer) in &players_query {
+                if other_position.is_in_sight(position) {
+                    other_socket_writer.write(&mut (&unequip_item).into());
                 }
             }
         }

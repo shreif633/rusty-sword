@@ -70,7 +70,7 @@ pub enum ServerPacket {
     VisualEffect(self::visual_effect::VisualEffectResponse),
     UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse),
     MonsterAppear(self::monster_appear::MonsterAppearResponse),
-    NPCAppear(self::npc_appear::NPCAppearResponse),
+    NpcAppear(self::npc_appear::NpcAppearResponse),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -100,7 +100,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::unequip_item::HEADER => ServerPacket::UnequipItem(self::unequip_item::UnequipItemResponse::from(&mut packet)),
         self::update_item_quantity::HEADER => ServerPacket::UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse::from(&mut packet)),
         self::monster_appear::HEADER => ServerPacket::MonsterAppear(self::monster_appear::MonsterAppearResponse::from(&mut packet)),
-        self::npc_appear::HEADER => ServerPacket::NPCAppear(self::npc_appear::NPCAppearResponse::from(&mut packet)),
+        self::npc_appear::HEADER => ServerPacket::NpcAppear(self::npc_appear::NpcAppearResponse::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

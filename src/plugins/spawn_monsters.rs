@@ -44,11 +44,9 @@ fn spawn_monsters(mut commands: Commands, monsters_configs: Res<MonstersConfig>)
 fn handle_position_change(moved_query: Query<(&Previous<Position>, &Position, &SocketWriter), Changed<Position>>, monsters_query: Query<(Entity, &Monster, &Position, &CurrentHealthPoints, &MaximumHealthPoints)>) {
     for (moved_previous_position, moved_position, moved_socket_writer) in &moved_query {
         for (entity, monster, position, current_health_points, maximum_health_points) in &monsters_query {
-            if !position.is_in_sight(&moved_previous_position.entity) {
-                if position.is_in_sight(moved_position) {
-                    let player_appear = MonsterAppearResponse::new(entity, monster, position, current_health_points, maximum_health_points);
-                    moved_socket_writer.write(&mut (&player_appear).into());
-                }
+            if !position.is_in_sight(&moved_previous_position.entity) && position.is_in_sight(moved_position) {
+                let player_appear = MonsterAppearResponse::new(entity, monster, position, current_health_points, maximum_health_points);
+                moved_socket_writer.write(&mut (&player_appear).into());
             }
         }
     }

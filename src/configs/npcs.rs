@@ -5,12 +5,12 @@ use std::fs::File;
 use std::io::Read;
 
 #[derive(Debug, Resource)]
-pub struct NPCsConfig {
-    pub config: HashMap<u16, NPCConfig>
+pub struct NpcsConfig {
+    pub config: HashMap<u16, NpcConfig>
 } 
 
 #[derive(Debug, Deserialize)]
-pub struct NPCConfig {
+pub struct NpcConfig {
     pub name: String,
     pub index: u16,
     pub shape: u8,
@@ -41,9 +41,9 @@ pub struct OptionalConfig {
     pub look_at_y: u32
 }
 
-impl From<&OptionalConfig> for NPCConfig {
+impl From<&OptionalConfig> for NpcConfig {
     fn from(val: &OptionalConfig) -> Self {
-        NPCConfig {
+        NpcConfig {
             name: val.name.clone(),
             index: val.index,
             shape: val.shape,
@@ -73,8 +73,8 @@ pub fn read_config(group_name: &str) -> TempConfig {
     toml::from_str(&contents).unwrap()
 }
 
-pub fn load() -> NPCsConfig {
-    let mut npcs_config = NPCsConfig { config: HashMap::new() };
+pub fn load() -> NpcsConfig {
+    let mut npcs_config = NpcsConfig { config: HashMap::new() };
     let npcs = read_config("narootuh");
     for npc in npcs.npc {
         npcs_config.config.insert(npc.index, (&npc).into());

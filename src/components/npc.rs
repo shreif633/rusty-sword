@@ -1,15 +1,15 @@
 use bevy::prelude::*;
-use crate::configs::npcs::NPCConfig;
+use crate::configs::npcs::NpcConfig;
 
 #[derive(Component)]
-pub struct NPC {
+pub struct Npc {
     pub index: u16,
     pub shape: u8,
 }
 
-impl From<&NPCConfig> for NPC {
-    fn from(npc_config: &NPCConfig) -> Self {
-        NPC { 
+impl From<&NpcConfig> for Npc {
+    fn from(npc_config: &NpcConfig) -> Self {
+        Npc { 
             index: npc_config.index, 
             shape: npc_config.shape
         }

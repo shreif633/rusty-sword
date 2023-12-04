@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::configs::npcs::NPCConfig;
+use crate::configs::npcs::NpcConfig;
 
 #[derive(Component)]
 pub struct Direction {
@@ -16,8 +16,8 @@ impl Direction {
     }
 }
 
-impl From<&NPCConfig> for Direction {
-    fn from(npc_config: &NPCConfig) -> Self {
+impl From<&NpcConfig> for Direction {
+    fn from(npc_config: &NpcConfig) -> Self {
         Direction::new(npc_config.x, npc_config.y, npc_config.look_at_x, npc_config.look_at_y)
     }
 }
