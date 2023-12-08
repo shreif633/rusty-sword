@@ -1,5 +1,6 @@
 use sqlx::{query, query_scalar};
 use sqlx::types::chrono::{NaiveDateTime, Local};
+use crate::components::experience;
 use crate::enums::player_class::PlayerClass;
 use crate::framework::database::Database;
 
@@ -286,13 +287,14 @@ pub struct PlayerCreateChangeset<'a> {
 pub fn create_player(database: &Database, changeset: &PlayerCreateChangeset) -> Option<i32> {
     let class = u8::from(changeset.class);
     let rt = tokio::runtime::Builder::new_current_thread().enable_time().build().unwrap();
+    let level = changeset.experience + 1;
     let player_id = rt.block_on(async move {
         query_scalar!("
         INSERT INTO players 
         (user_id, name, class, specialty, level, base_strength, base_health, base_intelligence, base_wisdom, base_agility, face, hair, x, y, z, weapon_index, shield_index, helmet_index, chest_index, shorts_index, gloves_index, boots_index, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, experience, rage) 
         values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-        ", changeset.user_id, changeset.name, class, 1, changeset.experience, changeset.base_strength, changeset.base_health, changeset.base_intelligence, changeset.base_wisdom, changeset.base_agility, changeset.face, changeset.hair, changeset.x, changeset.y, changeset.z, 0, 0, 0, 0, 0, 0, 0, 1000, 2000, 1000, 2000, 0, 0)
+        ", changeset.user_id, changeset.name, class, 1, level, changeset.base_strength, changeset.base_health, changeset.base_intelligence, changeset.base_wisdom, changeset.base_agility, changeset.face, changeset.hair, changeset.x, changeset.y, changeset.z, 0, 0, 0, 0, 0, 0, 0, 1000, 2000, 1000, 2000, 0, 0)
         .fetch_one(&database.connection).await.unwrap()
     }) as i32;
     Some(player_id)

@@ -27,10 +27,10 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
                             if show_client_packets {
                                 if hide_known_packets {
                                     if let ClientPacket::Unknown(client_packet) = client_packet {
-                                        println!("{:?}", &client_packet);
+                                        println!("[request] {:?}", &client_packet);
                                     }
                                 } else {
-                                    println!("{:?}", &client_packet);
+                                    println!("[request] {:?}", &client_packet);
                                 }
                             }
                         }
@@ -58,10 +58,10 @@ pub async fn start(client: &str, server: &str, hide_known_packets: bool, show_se
                             if show_server_packets {
                                 if hide_known_packets {
                                     if let ServerPacket::Unknown(server_packet) = server_packet {
-                                        println!("{:?}", &server_packet);
+                                        println!("[response] {:?}", &server_packet);
                                     }
                                 } else {
-                                    println!("{:?}", &server_packet);
+                                    println!("[response] {:?}", &server_packet);
                                 }
                             }
                         }

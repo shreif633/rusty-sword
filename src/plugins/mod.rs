@@ -1,4 +1,5 @@
 pub mod select_server;
+pub mod battle;
 pub mod tcp_server;
 pub mod character_selection;
 pub mod select_character;

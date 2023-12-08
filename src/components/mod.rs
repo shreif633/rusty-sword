@@ -1,5 +1,6 @@
-pub mod appearence;
+pub mod appearance;
 pub mod base_points;
+pub mod beheadable;
 pub mod cooldown;
 pub mod current_health_points;
 pub mod current_magic_points;
@@ -24,6 +25,7 @@ pub mod player;
 pub mod position;
 pub mod previous;
 pub mod rage;
+pub mod spawn;
 pub mod user;
 pub mod visual_effect;
 pub mod walking;

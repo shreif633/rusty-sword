@@ -27,6 +27,7 @@ pub struct Monster {
     pub agressive: bool,
     pub sight: u16,
     pub experience: u32,
+    pub beheadable: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -57,6 +58,8 @@ pub fn read_config(monster_name: &str) -> MonsterConfig {
 pub fn load() -> MonstersConfig {
     let mut monsters_config = MonstersConfig { config: HashMap::new() };
     let monster_config = read_config("demon_vulgar");
+    monsters_config.config.insert(monster_config.monster.index, monster_config);
+    let monster_config = read_config("demon_scout");
     monsters_config.config.insert(monster_config.monster.index, monster_config);
     monsters_config
 }

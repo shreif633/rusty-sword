@@ -71,6 +71,9 @@ fn process_socket_queue(mut commands: Commands, queue: ResMut<SocketQueue>, enti
                             ClientPacket::EquipItem(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::UnequipItem(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             ClientPacket::UseItem(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
+                            ClientPacket::NormalHit(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
+                            ClientPacket::SkillPrepare(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
+                            ClientPacket::SkillExecute(ref client_packet) => {commands.entity(entity).insert(client_packet.clone());},
                             _ => {
                                 if let ClientPacket::Unknown(ref client_packet) = client_packet {
                                     if *client_packet.buffer.get(2).unwrap() != 253 {

@@ -1,8 +1,9 @@
+use bevy::prelude::*;
 use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 81;
 
-#[derive(Debug, Clone)]
+#[derive(Component, Debug, Clone)]
 pub struct SkillPrepareRequest {
     pub skill_index: u8,
     pub target_id: i32,

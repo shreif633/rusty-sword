@@ -5,6 +5,7 @@ use crate::components::maximum_health_points::MaximumHealthPoints;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
 use crate::components::monster::Monster;
+use crate::components::spawn::Spawn;
 
 #[derive(Bundle)]
 pub struct MonsterBundle {
@@ -15,4 +16,5 @@ pub struct MonsterBundle {
     pub maximum_health_points: MaximumHealthPoints,
     pub current_health_points: CurrentHealthPoints,
     pub previous_current_health_points: Previous<CurrentHealthPoints>,
+    pub spawn: Spawn
 }

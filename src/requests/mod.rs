@@ -1,7 +1,9 @@
 use crate::framework::packet::Packet;
+pub mod skill_execute;
 pub mod server_select;
 pub mod authenticate;
 pub mod select_character;
+pub mod select_target;
 pub mod skill_prepare;
 pub mod chat_message;
 pub mod player_walk;
@@ -11,6 +13,7 @@ pub mod create_character;
 pub mod delete_character;
 pub mod restore_deleted_character;
 pub mod equip_item;
+pub mod normal_hit;
 pub mod unequip_item;
 pub mod use_item;
 use bevy::prelude::*;
@@ -21,6 +24,7 @@ pub enum ClientPacket {
     Authenticate(self::authenticate::AuthenticateRequest),
     SelectCharacter(self::select_character::SelectCharacterRequest),
     SkillPrepare(self::skill_prepare::SkillPrepareRequest),
+    SkillExecute(self::skill_execute::SkillExecuteRequest),
     ChatMessage(self::chat_message::ChatMessageRequest),
     PlayerWalk(self::player_walk::PlayerWalkRequest),
     PlayerStopWalking(self::player_stop_walking::PlayerStopWalkingRequest),
@@ -31,6 +35,8 @@ pub enum ClientPacket {
     EquipItem(self::equip_item::EquipItemRequest),
     UnequipItem(self::unequip_item::UnequipItemRequest),
     UseItem(self::use_item::UseItemRequest),
+    NormalHit(self::normal_hit::NormalHitRequest),
+    SelectTarget(self::select_target::SelectTargetRequest),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -42,6 +48,7 @@ pub fn deserialize(buffer: &[u8]) -> ClientPacket {
         self::authenticate::HEADER => ClientPacket::Authenticate(self::authenticate::AuthenticateRequest::from(&mut packet)),
         self::select_character::HEADER => ClientPacket::SelectCharacter(self::select_character::SelectCharacterRequest::from(&mut packet)),
         self::skill_prepare::HEADER => ClientPacket::SkillPrepare(self::skill_prepare::SkillPrepareRequest::from(&mut packet)),
+        self::skill_execute::HEADER => ClientPacket::SkillExecute(self::skill_execute::SkillExecuteRequest::from(&mut packet)),
         self::chat_message::HEADER => ClientPacket::ChatMessage(self::chat_message::ChatMessageRequest::from(&mut packet)),
         self::player_walk::HEADER => ClientPacket::PlayerWalk(self::player_walk::PlayerWalkRequest::from(&mut packet)),
         self::player_stop_walking::HEADER => ClientPacket::PlayerStopWalking(self::player_stop_walking::PlayerStopWalkingRequest::from(&mut packet)),
@@ -52,6 +59,8 @@ pub fn deserialize(buffer: &[u8]) -> ClientPacket {
         self::unequip_item::HEADER => ClientPacket::UnequipItem(self::unequip_item::UnequipItemRequest::from(&mut packet)),
         self::use_item::HEADER => ClientPacket::UseItem(self::use_item::UseItemRequest::from(&mut packet)),
         self::emote::HEADER => ClientPacket::Emote(self::emote::EmoteRequest::from(&mut packet)),
+        self::normal_hit::HEADER => ClientPacket::NormalHit(self::normal_hit::NormalHitRequest::from(&mut packet)),
+        self::select_target::HEADER => ClientPacket::SelectTarget(self::select_target::SelectTargetRequest::from(&mut packet)),
         _ => ClientPacket::Unknown(packet)
     }
 }

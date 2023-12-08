@@ -39,6 +39,8 @@ fn query_player_skills(database: &Database, player_id: i32) -> Vec<Skill> {
         };
         skills.push(skill);
     }
+    skills.push(Skill { id: 1, index: 1, grade: 1 });
+    skills.push(Skill { id: 3, index: 3, grade: 1 });
     skills
 }
 
@@ -52,6 +54,7 @@ fn load_skills(mut commands: Commands, query: Query<(Entity, &Id, &SocketWriter)
         let player_skills = Skills { skills: player_skills };
         commands.entity(entity).insert(player_skills);
         let skills = PlayerSkillsResponse { skills };
+        println!("SKILLS {:?}", skills);
         socket_writer.write(&mut (&skills).into());
     }
 }

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::repositories::player::PlayerRow;
 
 #[derive(Component)]
-pub struct Appearence {
+pub struct Appearance {
     pub name: String,
     pub face: u8,
     pub hair: u8,
@@ -15,9 +15,9 @@ pub struct Appearence {
     pub boots_index: u16, 
 }
 
-impl From<&PlayerRow> for Appearence {
+impl From<&PlayerRow> for Appearance {
     fn from(player_row: &PlayerRow) -> Self {
-        Appearence {
+        Appearance {
             name: player_row.name.clone(),
             face: player_row.face,
             hair: player_row.hair,

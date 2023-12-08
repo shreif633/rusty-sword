@@ -7,6 +7,7 @@ pub mod authentication_error;
 pub mod list_player_characters;
 pub mod list_player_deleted_characters;
 pub mod monster_appear;
+pub mod normal_hit_damage;
 pub mod npc_appear;
 pub mod player_position;
 pub mod player_appear;
@@ -18,6 +19,7 @@ pub mod player_extra_strength;
 pub mod player_extra_intelligence;
 pub mod player_extra_wisdom;
 pub mod player_extra_agility;
+pub mod general_state;
 pub mod guild_members;
 pub mod skill_prepare;
 pub mod skill_execute;
@@ -71,6 +73,8 @@ pub enum ServerPacket {
     UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse),
     MonsterAppear(self::monster_appear::MonsterAppearResponse),
     NpcAppear(self::npc_appear::NpcAppearResponse),
+    NormalHitDamage(self::normal_hit_damage::NormalHitDamageResponse),
+    GeneralState(self::general_state::GeneralStateResponse),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -101,6 +105,8 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::update_item_quantity::HEADER => ServerPacket::UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse::from(&mut packet)),
         self::monster_appear::HEADER => ServerPacket::MonsterAppear(self::monster_appear::MonsterAppearResponse::from(&mut packet)),
         self::npc_appear::HEADER => ServerPacket::NpcAppear(self::npc_appear::NpcAppearResponse::from(&mut packet)),
+        self::normal_hit_damage::HEADER => ServerPacket::NormalHitDamage(self::normal_hit_damage::NormalHitDamageResponse::from(&mut packet)),
+        self::general_state::HEADER => ServerPacket::GeneralState(self::general_state::GeneralStateResponse::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

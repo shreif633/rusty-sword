@@ -1,6 +1,6 @@
 [monster]
-name = "Demon Vulgar"
-index = 1
+name = "Demon Scout"
+index = 2
 level = 1
 range = 20
 physical_attack = 200
@@ -8,7 +8,7 @@ defense = 10
 agressive = true
 sight = 240
 experience = 2
-beheadable = true
+beheadable = false
 
 [[drop]]
 index = 20

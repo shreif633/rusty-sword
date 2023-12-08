@@ -1,4 +1,4 @@
-use crate::components::appearence::Appearence;
+use crate::components::appearance::Appearance;
 use crate::components::id::Id;
 use crate::components::player::Player;
 use crate::components::position::Position;
@@ -31,7 +31,7 @@ pub struct PlayerAppearResponse {
 }
 
 impl PlayerAppearResponse {
-    pub fn new(id: &Id, player: &Player, position: &Position, appearence: &Appearence, is_current_player: bool) -> Self {
+    pub fn new(id: &Id, player: &Player, position: &Position, appearence: &Appearance, is_current_player: bool) -> Self {
         PlayerAppearResponse { 
             id: id.id, 
             name: appearence.name.clone(), 

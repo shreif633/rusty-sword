@@ -5,6 +5,7 @@ use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::configs::{player_starter, items, monsters, npcs};
 use crate::framework::entity_map::EntityMap;
+use crate::plugins::battle::BattlePlugin;
 use crate::plugins::medicine::MedicinePlugin;
 use crate::plugins::persist_item::PersistItemPlugin;
 use crate::plugins::player_health::PlayerHealthPlugin;
@@ -55,6 +56,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(VisualEffectPlugin)
             .add_plugins(SpawnMonstersPlugin)
             .add_plugins(SpawnNpcsPlugin)
+            .add_plugins(BattlePlugin)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)

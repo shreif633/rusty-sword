@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::components::id::Id;
 use crate::repositories::player::PlayerRow;
 use crate::components::equipped_weapon::EquippedWeapon;
-use crate::components::appearence::Appearence;
+use crate::components::appearance::Appearance;
 use crate::components::magical_attack::MagicalAttack;
 use crate::components::physical_attack::PhysicalAttack;
 use crate::components::rage::Rage;
@@ -36,7 +36,7 @@ pub struct PlayerBundle {
     rage: Rage,
     physical_attack: PhysicalAttack,
     magical_attack: MagicalAttack,
-    appearence: Appearence,
+    appearence: Appearance,
     equipped_weapon: EquippedWeapon,
     previous_equipped_weapon: Previous<EquippedWeapon>
 }
@@ -60,7 +60,7 @@ impl PlayerBundle {
             rage: Rage::from(player_row),
             physical_attack: PhysicalAttack::from(player_row),
             magical_attack: MagicalAttack::from(player_row),
-            appearence: Appearence::from(player_row),
+            appearence: Appearance::from(player_row),
             equipped_weapon: EquippedWeapon::from(player_row),
             previous_equipped_weapon: Previous::from(EquippedWeapon::from(player_row))
         }

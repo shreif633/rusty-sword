@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 use crate::configs::npcs::NpcConfig;
 use crate::repositories::player::PlayerRow;
+use rand::{thread_rng, Rng};
+use super::spawn::Spawn;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Position {
     pub x: u32,
     pub y: u32,
@@ -25,6 +27,19 @@ impl From<&NpcConfig> for Position {
             x: npc_config.x, 
             y: npc_config.y, 
             z: npc_config.z
+        }
+    }
+}
+
+impl From<&Spawn> for Position {
+    fn from(spawn: &Spawn) -> Self {
+        let mut rng = thread_rng();
+        let random_x = rng.gen_range(spawn.bottom_x..spawn.top_x);
+        let random_y = rng.gen_range(spawn.bottom_y..spawn.top_y);
+        Position { 
+            x: random_x, 
+            y: random_y, 
+            z: 0
         }
     }
 }
