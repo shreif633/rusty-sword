@@ -1,5 +1,7 @@
+pub mod appear_disappear;
 pub mod select_server;
-pub mod battle;
+pub mod normal_hit;
+pub mod behead;
 pub mod tcp_server;
 pub mod character_selection;
 pub mod select_character;
@@ -13,6 +15,6 @@ pub mod player_health;
 pub mod inventory;
 pub mod medicine;
 pub mod skills;
-pub mod spawn_monsters;
+pub mod monsters_lifecycle;
 pub mod spawn_npcs;
 pub mod visual_effects;

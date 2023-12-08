@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::components::id::Id;
+use crate::components::observers::Observers;
 use crate::repositories::player::PlayerRow;
 use crate::components::equipped_weapon::EquippedWeapon;
 use crate::components::appearance::Appearance;
@@ -38,7 +39,8 @@ pub struct PlayerBundle {
     magical_attack: MagicalAttack,
     appearence: Appearance,
     equipped_weapon: EquippedWeapon,
-    previous_equipped_weapon: Previous<EquippedWeapon>
+    previous_equipped_weapon: Previous<EquippedWeapon>,
+    observers: Observers,
 }
 
 impl PlayerBundle {
@@ -62,7 +64,8 @@ impl PlayerBundle {
             magical_attack: MagicalAttack::from(player_row),
             appearence: Appearance::from(player_row),
             equipped_weapon: EquippedWeapon::from(player_row),
-            previous_equipped_weapon: Previous::from(EquippedWeapon::from(player_row))
+            previous_equipped_weapon: Previous::from(EquippedWeapon::from(player_row)),
+            observers: Observers::new()
         }
     }
 }

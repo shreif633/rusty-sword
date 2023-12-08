@@ -5,7 +5,7 @@ pub struct Framerate;
 
 impl Plugin for Framerate {
     fn build(&self, app: &mut App) {
-        app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        app.add_plugins(FrameTimeDiagnosticsPlugin);
         app.add_systems(Update, log_framerate);
     }
 }

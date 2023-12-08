@@ -1,5 +1,6 @@
 pub mod appearance;
 pub mod base_points;
+pub mod behead_timer;
 pub mod beheadable;
 pub mod cooldown;
 pub mod current_health_points;
@@ -19,6 +20,7 @@ pub mod maximum_magic_points;
 pub mod medicine;
 pub mod monster;
 pub mod npc;
+pub mod observers;
 pub mod physical_attack;
 pub mod player_owner;
 pub mod player;

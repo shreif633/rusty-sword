@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::id::Id;
 use crate::components::maximum_health_points::MaximumHealthPoints;
+use crate::components::observers::Observers;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
 use crate::components::monster::Monster;
@@ -16,5 +17,6 @@ pub struct MonsterBundle {
     pub maximum_health_points: MaximumHealthPoints,
     pub current_health_points: CurrentHealthPoints,
     pub previous_current_health_points: Previous<CurrentHealthPoints>,
-    pub spawn: Spawn
+    pub spawn: Spawn,
+    pub observers: Observers,
 }

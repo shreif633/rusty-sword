@@ -7,6 +7,7 @@ pub mod authentication_error;
 pub mod list_player_characters;
 pub mod list_player_deleted_characters;
 pub mod monster_appear;
+pub mod monster_disappear;
 pub mod normal_hit_damage;
 pub mod npc_appear;
 pub mod player_position;
@@ -36,6 +37,7 @@ pub mod unequip_item;
 pub mod player_current_health_points;
 pub mod visual_effect;
 pub mod update_item_quantity;
+pub mod player_disappear;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -72,9 +74,11 @@ pub enum ServerPacket {
     VisualEffect(self::visual_effect::VisualEffectResponse),
     UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse),
     MonsterAppear(self::monster_appear::MonsterAppearResponse),
+    MonsterDisappear(self::monster_disappear::MonsterDisappearResponse),
     NpcAppear(self::npc_appear::NpcAppearResponse),
     NormalHitDamage(self::normal_hit_damage::NormalHitDamageResponse),
     GeneralState(self::general_state::GeneralStateResponse),
+    PlayerDisappear(self::player_disappear::PlayerDisappearResponse),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -104,9 +108,11 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::unequip_item::HEADER => ServerPacket::UnequipItem(self::unequip_item::UnequipItemResponse::from(&mut packet)),
         self::update_item_quantity::HEADER => ServerPacket::UpdateItemQuantity(self::update_item_quantity::UpdateItemQuantityResponse::from(&mut packet)),
         self::monster_appear::HEADER => ServerPacket::MonsterAppear(self::monster_appear::MonsterAppearResponse::from(&mut packet)),
+        self::monster_disappear::HEADER => ServerPacket::MonsterDisappear(self::monster_disappear::MonsterDisappearResponse::from(&mut packet)),
         self::npc_appear::HEADER => ServerPacket::NpcAppear(self::npc_appear::NpcAppearResponse::from(&mut packet)),
         self::normal_hit_damage::HEADER => ServerPacket::NormalHitDamage(self::normal_hit_damage::NormalHitDamageResponse::from(&mut packet)),
         self::general_state::HEADER => ServerPacket::GeneralState(self::general_state::GeneralStateResponse::from(&mut packet)),
+        self::player_disappear::HEADER => ServerPacket::PlayerDisappear(self::player_disappear::PlayerDisappearResponse::from(&mut packet)),
         self::check_hash::HEADER => {
             let sub_header = packet.get_u32();
             match sub_header {

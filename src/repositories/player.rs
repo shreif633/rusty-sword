@@ -1,6 +1,5 @@
 use sqlx::{query, query_scalar};
 use sqlx::types::chrono::{NaiveDateTime, Local};
-use crate::components::experience;
 use crate::enums::player_class::PlayerClass;
 use crate::framework::database::Database;
 

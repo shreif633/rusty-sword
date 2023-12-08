@@ -5,7 +5,9 @@ use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::configs::{player_starter, items, monsters, npcs};
 use crate::framework::entity_map::EntityMap;
-use crate::plugins::battle::BattlePlugin;
+use crate::plugins::appear_disappear::AppearDisappearPlugin;
+use crate::plugins::normal_hit::NormalHitPlugin;
+use crate::plugins::behead::BeheadPlugin;
 use crate::plugins::medicine::MedicinePlugin;
 use crate::plugins::persist_item::PersistItemPlugin;
 use crate::plugins::player_health::PlayerHealthPlugin;
@@ -19,7 +21,7 @@ use crate::plugins::emote::EmotePlugin;
 use crate::plugins::player_movement::PlayerMovementPlugin;
 use crate::plugins::select_character::SelectCharacterPlugin;
 use crate::plugins::character_selection::CharacterSelectionPlugin;
-use crate::plugins::spawn_monsters::SpawnMonstersPlugin;
+use crate::plugins::monsters_lifecycle::MonstersLifecyclePlugin;
 use crate::plugins::spawn_npcs::SpawnNpcsPlugin;
 use crate::plugins::tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServerPlugin};
 use crate::plugins::visual_effects::VisualEffectPlugin;
@@ -54,9 +56,11 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(PlayerHealthPlugin)
             .add_plugins(MedicinePlugin)
             .add_plugins(VisualEffectPlugin)
-            .add_plugins(SpawnMonstersPlugin)
+            .add_plugins(MonstersLifecyclePlugin)
             .add_plugins(SpawnNpcsPlugin)
-            .add_plugins(BattlePlugin)
+            .add_plugins(NormalHitPlugin)
+            .add_plugins(AppearDisappearPlugin)
+            .add_plugins(BeheadPlugin)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)

@@ -59,4 +59,17 @@ impl Position {
     pub fn is_in_sight(&self, other: &Position) -> bool {
         self.is_in_range(other, 900)
     }
+
+    pub fn respawn(&mut self, spawn: &Spawn) {
+        let next_position = Position::from(spawn);
+        self.x = next_position.x;
+        self.y = next_position.y;
+        self.z = next_position.z;
+    }
+
+    pub fn hide(&mut self) {
+        self.x = 0;
+        self.y = 0;
+        self.z = 0;
+    }
 }

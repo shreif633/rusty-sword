@@ -19,7 +19,6 @@ impl Plugin for PlayerMovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, handle_player_walking);
         app.add_systems(Update, handle_position_added);
-        app.add_systems(Update, handle_position_change);
         app.add_systems(Update, handle_player_walk);
         app.add_systems(Update, handle_player_stop_walking);
         app.add_systems(Last, update_previous_position);
@@ -32,19 +31,6 @@ fn handle_position_added(query: Query<(&Id, &Player, &Position, &Appearance, &So
         socket_writer.write(&mut (&player_position).into());
         let player_appear = PlayerAppearResponse::new(id, player, position, appearence, true);
         socket_writer.write(&mut (&player_appear).into());
-    }
-}
-
-fn handle_position_change(moved_query: Query<(&Id, &Player, &Previous<Position>, &Position, &Appearance, &SocketWriter), Changed<Position>>, players_query: Query<(&Id, &Player, &Position, &Appearance, &SocketWriter)>) {
-    for (moved_id, moved_player, moved_previous_position, moved_position, moved_appearence, moved_socket_writer) in &moved_query {
-        for (id, player, position, appearence, socket_writer) in &players_query {
-            if moved_id.id != id.id && !position.is_in_sight(&moved_previous_position.entity) && position.is_in_sight(moved_position) {
-                let player_appear = PlayerAppearResponse::new(moved_id, moved_player, moved_position, moved_appearence, false);
-                socket_writer.write(&mut (&player_appear).into());
-                let player_appear = PlayerAppearResponse::new(id, player, position, appearence, false);
-                moved_socket_writer.write(&mut (&player_appear).into());
-            }
-        }
     }
 }
 
@@ -75,7 +61,7 @@ fn handle_player_walking(mut commands: Commands, moved_query: Query<(Entity, &Id
     }
 }
 
-fn update_position(previous_position: &mut Previous<Position>, position: &mut Position, delta_x: u8, delta_y: u8, delta_z: u8) {
+fn update_position(position: &mut Position, delta_x: u8, delta_y: u8, delta_z: u8) {
     let delta_x: u32 = delta_x.try_into().unwrap();
     if delta_x > 128 { 
         position.x -= 256 - delta_x;
@@ -96,17 +82,17 @@ fn update_position(previous_position: &mut Previous<Position>, position: &mut Po
     }
 }
 
-fn handle_player_walk(mut commands: Commands, mut query: Query<(Entity, &PlayerWalkRequest, &mut Previous<Position>, &mut Position)>) {
-    for (entity, client_packet, mut previous_position, mut position) in query.iter_mut() {
-        update_position(&mut previous_position, &mut position, client_packet.delta_x, client_packet.delta_y, client_packet.delta_z);
+fn handle_player_walk(mut commands: Commands, mut query: Query<(Entity, &PlayerWalkRequest, &mut Position)>) {
+    for (entity, client_packet, mut position) in query.iter_mut() {
+        update_position(&mut position, client_packet.delta_x, client_packet.delta_y, client_packet.delta_z);
         commands.entity(entity).insert(Walking { done: false, delta_x: client_packet.delta_x, delta_y: client_packet.delta_y, delta_z: client_packet.delta_z });
         commands.entity(entity).remove::<PlayerWalkRequest>();
     }
 }
 
-fn handle_player_stop_walking(mut commands: Commands, mut query: Query<(Entity, &PlayerStopWalkingRequest, &mut Previous<Position>, &mut Position)>) {
-    for (entity, client_packet, mut previous_position, mut position) in query.iter_mut() {
-        update_position(&mut previous_position, &mut position, client_packet.delta_x, client_packet.delta_y, client_packet.delta_z);
+fn handle_player_stop_walking(mut commands: Commands, mut query: Query<(Entity, &PlayerStopWalkingRequest, &mut Position)>) {
+    for (entity, client_packet, mut position) in query.iter_mut() {
+        update_position(&mut position, client_packet.delta_x, client_packet.delta_y, client_packet.delta_z);
         commands.entity(entity).insert(Walking { done: true, delta_x: client_packet.delta_x, delta_y: client_packet.delta_y, delta_z: client_packet.delta_z });
         commands.entity(entity).remove::<PlayerStopWalkingRequest>();
     }

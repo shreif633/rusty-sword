@@ -32,7 +32,7 @@ impl From<&NormalHitDamageResponse> for Packet {
         packet.write_i32(val.target_id);
         packet.write_u32(val.normal_damage);
         packet.write_u32(val.explosive_blow_damage);
-        packet.write_u8(u8::from(val.damage_type.clone()));
+        packet.write_u8(u8::from(val.damage_type));
         packet.write_u32(val.soul_pocket_damage);
         packet
     }
