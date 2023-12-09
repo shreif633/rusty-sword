@@ -50,7 +50,7 @@ fn update_observers_list(mut monsters: Query<(Entity, &mut Observers, &Position,
     for (observer_entity, mut observers, observer_position, option_monster, option_player) in monsters.iter_mut() {
         let mut new_entities = Vec::<Entity>::new();
         for (player_entity, player_position) in players.iter() {
-            if observer_entity != player_entity {
+            // if observer_entity != player_entity {
                 let entity_type = if let Some(_monster) = option_monster {
                     EntityType::Monster(observer_entity)
                 } else if let Some(_player) = option_player {
@@ -67,7 +67,7 @@ fn update_observers_list(mut monsters: Query<(Entity, &mut Observers, &Position,
                 } else if observers.entities.contains(&player_entity) {
                     disappear_event.send(DisappearEvent { entity: entity_type, observer: player_entity });
                 }
-            }
+            // }
         }
         observers.entities = new_entities;
     }

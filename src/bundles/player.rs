@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::components::id::Id;
 use crate::components::observers::Observers;
+use crate::components::speed::Speed;
 use crate::repositories::player::PlayerRow;
 use crate::components::equipped_weapon::EquippedWeapon;
 use crate::components::appearance::Appearance;
@@ -41,6 +42,7 @@ pub struct PlayerBundle {
     equipped_weapon: EquippedWeapon,
     previous_equipped_weapon: Previous<EquippedWeapon>,
     observers: Observers,
+    speed: Speed,
 }
 
 impl PlayerBundle {
@@ -65,7 +67,8 @@ impl PlayerBundle {
             appearence: Appearance::from(player_row),
             equipped_weapon: EquippedWeapon::from(player_row),
             previous_equipped_weapon: Previous::from(EquippedWeapon::from(player_row)),
-            observers: Observers::new()
+            observers: Observers::new(),
+            speed: Speed { speed: 0 }
         }
     }
 }

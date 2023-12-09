@@ -30,9 +30,8 @@ pub struct PlayerInformationResponse {
     pub on_target_point: u16, 
     pub evasion: u16,
     pub defense: u16, 
-    pub absorption: u16,
-    pub experience: u32,
-    pub unknown2: Vec<u8>,
+    pub absorption: u8,
+    pub experience: i64,
     pub minimum_physical_attack: u16,
     pub maximum_physical_attack: u16,
     pub minimum_magical_attack: u16,
@@ -79,7 +78,6 @@ impl PlayerInformationResponse {
             defense: final_points.defense, 
             absorption: final_points.absorption, 
             experience: experience.experience,
-            unknown2: vec![0, 0, 0], 
             minimum_physical_attack: physical_attack.minimum_physical_attack, 
             maximum_physical_attack: physical_attack.maximum_physical_attack, 
             minimum_magical_attack: magical_attack.minimum_magical_attack, 
@@ -113,8 +111,8 @@ impl From<&mut Packet> for PlayerInformationResponse {
         let on_target_point = packet.get_u16();  
         let evasion = packet.get_u16(); 
         let defense = packet.get_u16(); 
-        let absorption = packet.get_u16(); 
-        let experience = packet.get_u32();
+        let absorption = packet.get_u8(); 
+        let experience = packet.get_i64();
         let unknown2 = packet.get_buffer(3);
         let minimum_physical_attack = packet.get_u16(); 
         let maximum_physical_attack = packet.get_u16(); 
@@ -131,7 +129,7 @@ impl From<&mut Packet> for PlayerInformationResponse {
         PlayerInformationResponse { 
             unknown1, contribution, base_strength, base_health, base_intelligence, base_wisdom, base_agility, 
             current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, on_target_point, 
-            evasion, defense, experience, unknown2, status_points, skill_points, fire_resistence, 
+            evasion, defense, experience, status_points, skill_points, fire_resistence, 
             ice_resistence, lighning_resistence, curse_resistence, non_elemental_resistence,
             absorption,
             minimum_physical_attack,
@@ -162,9 +160,8 @@ impl From<&PlayerInformationResponse> for Packet {
         packet.write_u16(val.on_target_point);
         packet.write_u16(val.evasion);
         packet.write_u16(val.defense);
-        packet.write_u16(val.absorption);
-        packet.write_u32(val.experience);
-        packet.write_buffer(&val.unknown2);
+        packet.write_u8(val.absorption);
+        packet.write_i64(val.experience);
         packet.write_u16(val.minimum_physical_attack);
         packet.write_u16(val.maximum_physical_attack);
         packet.write_u16(val.minimum_magical_attack);

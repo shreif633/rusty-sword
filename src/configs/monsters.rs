@@ -26,7 +26,7 @@ pub struct Monster {
     pub defense: u16,
     pub agressive: bool,
     pub sight: u16,
-    pub experience: u32,
+    pub experience: i64,
     pub beheadable: bool,
 }
 

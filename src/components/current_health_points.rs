@@ -8,7 +8,11 @@ pub struct CurrentHealthPoints {
 
 impl CurrentHealthPoints {
     pub fn sub(&mut self, value: u32) {
-        self.current_health_points = self.current_health_points.wrapping_sub(value);
+        if value > self.current_health_points {
+            self.current_health_points = 0;
+        } else {
+            self.current_health_points -= value;
+        }
     }
 }
 

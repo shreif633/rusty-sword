@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 use crate::components::behead_timer::BeheadTimer;
 use crate::components::current_health_points::CurrentHealthPoints;
+use crate::components::current_magic_points::CurrentMagicPoints;
 use crate::components::id::Id;
 use crate::components::maximum_health_points::MaximumHealthPoints;
+use crate::components::maximum_magic_points::MaximumMagicPoints;
 use crate::components::monster::Monster;
 use crate::components::position::Position;
 use crate::enums::target_type::TargetType;
@@ -20,6 +22,8 @@ impl Plugin for BeheadPlugin {
         app.add_systems(Update, handle_behead_skill);
         app.add_systems(Update, handle_skill_prepare);
         app.add_systems(Update, handle_skill_execute);
+        app.add_systems(Last, clear_skill_execute);
+        app.add_systems(Last, clear_skill_prepare);
     }
 }
 
@@ -40,7 +44,18 @@ fn handle_skill_prepare(mut commands: Commands, query: Query<(Entity, &SkillPrep
                 }
             }
         }
+    }
+}
+
+fn clear_skill_prepare(mut commands: Commands, query: Query<Entity, With<SkillPrepareRequest>>) {
+    for entity in &query {
         commands.entity(entity).remove::<SkillPrepareRequest>();
+    }
+}
+
+fn clear_skill_execute(mut commands: Commands, query: Query<Entity, With<SkillExecuteRequest>>) {
+    for entity in &query {
+        commands.entity(entity).remove::<SkillExecuteRequest>();
     }
 }
 
@@ -50,28 +65,27 @@ fn handle_skill_execute(mut commands: Commands, query: Query<(Entity, &SkillExec
             if let Some(target_id) = client_packet.target_id {
                 if let Some(monster_entity) = monsters_map.map.get(&target_id) {
                     if let Ok((monster_entity, monster_position)) = monsters_query.get(*monster_entity) {
-                        if position.is_in_sight(monster_position) {
-                            println!("DISTANCE: {}", position.calculate_distance(monster_position));
+                        if position.is_in_range(monster_position, 45) {
                             commands.spawn(SkillBehead { from: entity, to: monster_entity });
                         }
                     }
                 }
             }
         }
-        commands.entity(entity).remove::<SkillExecuteRequest>();
     }
 }
 
 fn handle_behead_skill(
     mut commands: Commands,
     behead_skills: Query<(Entity, &SkillBehead)>,
-    mut players: Query<(&Id, &mut CurrentHealthPoints, &MaximumHealthPoints, &SocketWriter)>,
+    mut players: Query<(&Id, &mut CurrentHealthPoints, &MaximumHealthPoints, &mut CurrentMagicPoints, &MaximumMagicPoints, &SocketWriter)>,
     monsters: Query<&Id, With<BeheadTimer>>,
 ) {
     for (behead_entity, behead_skills) in &behead_skills {
         if let Ok(monster_id) = monsters.get(behead_skills.to) {
-            if let Ok((player_id, mut current_health_points, maximum_health_points, socket_writer)) = players.get_mut(behead_skills.from) {
+            if let Ok((player_id, mut current_health_points, maximum_health_points, mut current_magic_points, maximum_magic_points, socket_writer)) = players.get_mut(behead_skills.from) {
                 current_health_points.current_health_points += maximum_health_points.maximum_health_points / 10;
+                current_magic_points.current_magic_points += maximum_magic_points.maximum_magic_points / 10;
                 let mut response = Packet::from(61);
                 response.write_i32(monster_id.id);
                 response.write_buffer(&[10]); // 8 = bh

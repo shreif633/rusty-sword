@@ -3,7 +3,7 @@ use crate::repositories::player::PlayerRow;
 
 #[derive(Component)]
 pub struct Experience {
-    pub experience: u32,
+    pub experience: i64,
 }
 
 impl From<&PlayerRow> for Experience {

@@ -8,6 +8,7 @@ pub mod list_player_characters;
 pub mod list_player_deleted_characters;
 pub mod monster_appear;
 pub mod monster_disappear;
+pub mod player_experience;
 pub mod normal_hit_damage;
 pub mod npc_appear;
 pub mod player_position;
@@ -38,6 +39,7 @@ pub mod player_current_health_points;
 pub mod visual_effect;
 pub mod update_item_quantity;
 pub mod player_disappear;
+pub mod player_current_magic_points;
 
 #[derive(Debug)]
 pub enum ServerPacket {
@@ -79,6 +81,8 @@ pub enum ServerPacket {
     NormalHitDamage(self::normal_hit_damage::NormalHitDamageResponse),
     GeneralState(self::general_state::GeneralStateResponse),
     PlayerDisappear(self::player_disappear::PlayerDisappearResponse),
+    PlayerCurrentMagicPoints(self::player_current_magic_points::PlayerCurrentMagicPointsResponse),
+    PlayerExperience(self::player_experience::PlayerExperienceResponse),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -132,6 +136,8 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
                 self::player_extra_wisdom::SUB_HEADER => ServerPacket::PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdomResponse::from(&mut packet)),
                 self::player_extra_agility::SUB_HEADER => ServerPacket::PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgilityResponse::from(&mut packet)),
                 self::player_current_health_points::SUB_HEADER => ServerPacket::PlayerCurrentHealthPoints(self::player_current_health_points::PlayerCurrentHealthPointsResponse::from(&mut packet)),
+                self::player_current_magic_points::SUB_HEADER => ServerPacket::PlayerCurrentMagicPoints(self::player_current_magic_points::PlayerCurrentMagicPointsResponse::from(&mut packet)),
+                self::player_experience::SUB_HEADER => ServerPacket::PlayerExperience(self::player_experience::PlayerExperienceResponse::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         },

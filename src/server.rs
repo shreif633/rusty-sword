@@ -23,6 +23,7 @@ use crate::plugins::select_character::SelectCharacterPlugin;
 use crate::plugins::character_selection::CharacterSelectionPlugin;
 use crate::plugins::monsters_lifecycle::MonstersLifecyclePlugin;
 use crate::plugins::spawn_npcs::SpawnNpcsPlugin;
+use crate::plugins::speed::SpeedPlugin;
 use crate::plugins::tcp_server::{SocketMessage, SocketQueue, SocketPair, TcpServerPlugin};
 use crate::plugins::visual_effects::VisualEffectPlugin;
 use tokio::{net::TcpListener, io::{AsyncReadExt, AsyncWriteExt}, sync::mpsc::{self}};
@@ -61,6 +62,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(NormalHitPlugin)
             .add_plugins(AppearDisappearPlugin)
             .add_plugins(BeheadPlugin)
+            .add_plugins(SpeedPlugin)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)
