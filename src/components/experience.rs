@@ -7,6 +7,7 @@ pub struct Experience {
 }
 
 impl Experience {
+	#[allow(dead_code)]
     pub fn calculate_level(&self) -> u8 {
         for (level, required_experience) in EXPERIENCE_TABLE.iter().enumerate().take(254) {
             if self.experience < *required_experience {
@@ -14,7 +15,11 @@ impl Experience {
             }
         }
         1
-    }    
+    }  
+
+	pub fn should_level_up(&self, current_level: u8) -> bool {
+		EXPERIENCE_TABLE[current_level as usize] <= self.experience
+	}  
 }
 
 impl From<&PlayerRow> for Experience {

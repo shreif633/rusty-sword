@@ -14,7 +14,7 @@ pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, distribute_experience);
-        app.add_systems(Update, compare_level);
+        app.add_systems(Update, attempt_level_up);
         app.add_systems(Update, add_level_up_effect);
         app.add_systems(Update, broadcast_new_level);
     }
@@ -36,11 +36,10 @@ fn distribute_experience(mut query: Query<(&mut Aggro, &Experience), (Added<Dead
     }
 }
 
-fn compare_level(mut query: Query<(&mut Level, &Experience), Changed<Experience>>) {
+fn attempt_level_up(mut query: Query<(&mut Level, &Experience), Changed<Experience>>) {
     for (mut level, experience) in query.iter_mut() {
-        let calculated_level = experience.calculate_level();
-        if calculated_level != level.level {
-            level.level = calculated_level;
+        while experience.should_level_up(level.level) {
+            level.level += 1;
         }
     }
 }
