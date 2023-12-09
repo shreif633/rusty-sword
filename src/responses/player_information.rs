@@ -113,7 +113,6 @@ impl From<&mut Packet> for PlayerInformationResponse {
         let defense = packet.get_u16(); 
         let absorption = packet.get_u8(); 
         let experience = packet.get_i64();
-        let unknown2 = packet.get_buffer(3);
         let minimum_physical_attack = packet.get_u16(); 
         let maximum_physical_attack = packet.get_u16(); 
         let minimum_magical_attack = packet.get_u16(); 

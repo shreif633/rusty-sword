@@ -18,6 +18,5 @@ impl Aggro {
         } else {
             self.list.insert(entity, value);
         }
-        println!("aggro: {:?}", self.list);
     }
 }

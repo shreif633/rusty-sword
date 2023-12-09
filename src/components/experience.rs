@@ -8,9 +8,9 @@ pub struct Experience {
 
 impl Experience {
     pub fn calculate_level(&self) -> u8 {
-        for i in 0..254 {
-            if self.experience < EXPERIENCE_TABLE[i] {
-               return i as u8; 
+        for (level, required_experience) in EXPERIENCE_TABLE.iter().enumerate().take(254) {
+            if self.experience < *required_experience {
+               return level as u8; 
             }
         }
         1

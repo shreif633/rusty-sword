@@ -31,11 +31,9 @@ fn handle_skill_execute(mut commands: Commands, mut query: Query<(Entity, &Skill
             if optional_running.is_some() {
                 commands.entity(entity).remove::<Running>();
                 speed.speed = 0;
-            } else {
-                if current_magic_points.current_magic_points >= MANA_PER_TICK {
-                    commands.entity(entity).insert(Running { consume_mana_timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating) });
-                    speed.speed = 45;
-                }
+            } else if current_magic_points.current_magic_points >= MANA_PER_TICK {
+                commands.entity(entity).insert(Running { consume_mana_timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating) });
+                speed.speed = 45;
             }
         }
     }
