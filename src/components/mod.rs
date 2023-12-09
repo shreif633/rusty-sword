@@ -8,6 +8,7 @@ pub mod current_health_points;
 pub mod current_magic_points;
 pub mod dead;
 pub mod direction;
+pub mod experience_rate;
 pub mod experience;
 pub mod equipped_weapon;
 pub mod extra_points;

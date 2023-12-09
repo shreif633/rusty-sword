@@ -68,7 +68,7 @@ fn tick_normal_hit(mut commands: Commands, mut attackers: Query<(Entity, &mut No
         normal_hit_target.timer.tick(time.delta());
         if normal_hit_target.timer.just_finished() {
             if let Ok((monster_entity, monster_position)) = targets.get_mut(normal_hit_target.target) {
-                let damage = 10;
+                let damage = 50;
                 if monster_position.is_in_sight(position) {
                     commands.spawn(Damage { source: entity, target: monster_entity, damage, aggro_multiplier: 1.0, nature: DamageNature::Normal });
                 }

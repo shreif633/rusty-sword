@@ -5,6 +5,7 @@ use crate::components::behead_timer::BeheadTimer;
 use crate::components::beheadable::Beheadable;
 use crate::components::dead::Dead;
 use crate::components::experience::Experience;
+use crate::components::level::Level;
 use crate::components::observers::Observers;
 use crate::components::spawn::Spawn;
 use crate::framework::entity_map::EntityMap;
@@ -55,6 +56,7 @@ fn spawn_monsters(mut commands: Commands, monsters_configs: Res<MonstersConfig>,
                     MonsterBundle {
                         id: Id { id: monster_id },
                         experience: Experience { experience: monster_config.monster.experience },
+                        level: Level { level: monster_config.monster.level },
                         monster: Monster { index: *monster_index }, 
                         previous_position: Previous::from(position.clone()), 
                         position: position.clone(), 

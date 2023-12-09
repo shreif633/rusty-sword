@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::components::experience_rate::ExperienceRate;
 use crate::components::id::Id;
 use crate::components::level::Level;
 use crate::components::observers::Observers;
@@ -45,6 +46,7 @@ pub struct PlayerBundle {
     previous_equipped_weapon: Previous<EquippedWeapon>,
     observers: Observers,
     speed: Speed,
+    experience_bonus: ExperienceRate,
 }
 
 impl PlayerBundle {
@@ -71,7 +73,8 @@ impl PlayerBundle {
             equipped_weapon: EquippedWeapon::from(player_row),
             previous_equipped_weapon: Previous::from(EquippedWeapon::from(player_row)),
             observers: Observers::new(),
-            speed: Speed { speed: 0 }
+            speed: Speed { speed: 0 },
+            experience_bonus: ExperienceRate { percentage: 100 }
         }
     }
 }
