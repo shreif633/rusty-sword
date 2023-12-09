@@ -2,8 +2,6 @@ use bevy::prelude::*;
 use std::time::Duration;
 use crate::components::aggro::Aggro;
 use crate::components::current_health_points::CurrentHealthPoints;
-use crate::components::dead::Dead;
-use crate::components::experience::Experience;
 use crate::components::id::Id;
 use crate::components::monster::Monster;
 use crate::components::observers::Observers;
@@ -14,7 +12,6 @@ use crate::enums::damage_type::DamageType;
 use crate::framework::entity_map::EntityMap;
 use crate::requests::normal_hit::NormalHitRequest;
 use crate::responses::normal_hit_damage::NormalHitDamageResponse;
-use crate::responses::player_experience::PlayerExperienceResponse;
 use super::tcp_server::SocketWriter;
 
 pub struct NormalHitPlugin;
@@ -26,7 +23,6 @@ impl Plugin for NormalHitPlugin {
         app.add_systems(Update, tick_normal_hit);
         app.add_systems(PostUpdate, defend_damage);
         app.add_systems(Last, calculate_damage);
-        app.add_systems(Update, distribute_experience);
     }
 }
 
@@ -115,22 +111,6 @@ fn calculate_damage(mut commands: Commands, damages: Query<(Entity, &Damage), Ad
                 }
             }
         }
-    }
-}
-
-fn distribute_experience(mut query: Query<(&mut Aggro, &Experience), (Added<Dead>, Without<Player>)>, mut players: Query<(&mut Experience, &SocketWriter), With<Player>>) {
-    for (mut aggro, experience) in query.iter_mut() {
-        let total_aggro: u32 = aggro.list.values().sum();
-        for (entity, points) in &aggro.list {
-            let percentage: i64 = (total_aggro * 100 / points).into();
-            let partial_experience = experience.experience * 100 / percentage;
-            if let Ok((mut experience, socket_writer)) = players.get_mut(*entity) {
-                experience.experience += partial_experience;
-                let player_experience_response = PlayerExperienceResponse { current_experience: experience.experience, added_experience: partial_experience };
-                socket_writer.write(&mut (&player_experience_response).into());
-            }
-        }
-        aggro.list.clear();
     }
 }
 

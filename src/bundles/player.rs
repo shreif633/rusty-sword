@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::components::id::Id;
+use crate::components::level::Level;
 use crate::components::observers::Observers;
 use crate::components::speed::Speed;
 use crate::repositories::player::PlayerRow;
@@ -24,6 +25,7 @@ use crate::components::player::Player;
 pub struct PlayerBundle {
     id: Id,
     player: Player,
+    level: Level,
     base_points: BasePoints,
     extra_points: ExtraPoints,
     final_points: FinalPoints,
@@ -50,6 +52,7 @@ impl PlayerBundle {
         PlayerBundle {
             id: Id { id: player_row.id },
             player: Player::from(player_row),
+            level: Level::from(player_row),
             base_points: BasePoints::from(player_row),
             extra_points: ExtraPoints::from(player_row),
             final_points: FinalPoints::from(player_row),

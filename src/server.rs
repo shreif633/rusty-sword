@@ -6,6 +6,7 @@ use crate::components::player::Player;
 use crate::configs::{player_starter, items, monsters, npcs};
 use crate::framework::entity_map::EntityMap;
 use crate::plugins::appear_disappear::AppearDisappearPlugin;
+use crate::plugins::level::LevelPlugin;
 use crate::plugins::normal_hit::NormalHitPlugin;
 use crate::plugins::behead::BeheadPlugin;
 use crate::plugins::medicine::MedicinePlugin;
@@ -63,6 +64,7 @@ async fn start_game_server(queue: Arc<Mutex<Vec<SocketPair>>>) {
             .add_plugins(AppearDisappearPlugin)
             .add_plugins(BeheadPlugin)
             .add_plugins(SpeedPlugin)
+            .add_plugins(LevelPlugin)
             .insert_resource(socket_queue)
             .insert_resource(player_starter_config)
             .insert_resource(items_config)

@@ -16,6 +16,7 @@ pub mod player_appear;
 pub mod player_skills;
 pub mod inventory;
 pub mod player_information;
+pub mod player_level;
 pub mod player_extra_health;
 pub mod player_extra_strength;
 pub mod player_extra_intelligence;
@@ -83,6 +84,7 @@ pub enum ServerPacket {
     PlayerDisappear(self::player_disappear::PlayerDisappearResponse),
     PlayerCurrentMagicPoints(self::player_current_magic_points::PlayerCurrentMagicPointsResponse),
     PlayerExperience(self::player_experience::PlayerExperienceResponse),
+    PlayerLevel(self::player_level::PlayerLevelResponse),
     Unknown(crate::framework::packet::Packet),
 }
 
@@ -138,6 +140,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
                 self::player_current_health_points::SUB_HEADER => ServerPacket::PlayerCurrentHealthPoints(self::player_current_health_points::PlayerCurrentHealthPointsResponse::from(&mut packet)),
                 self::player_current_magic_points::SUB_HEADER => ServerPacket::PlayerCurrentMagicPoints(self::player_current_magic_points::PlayerCurrentMagicPointsResponse::from(&mut packet)),
                 self::player_experience::SUB_HEADER => ServerPacket::PlayerExperience(self::player_experience::PlayerExperienceResponse::from(&mut packet)),
+                self::player_level::SUB_HEADER => ServerPacket::PlayerLevel(self::player_level::PlayerLevelResponse::from(&mut packet)),
                 _ => ServerPacket::Unknown(packet)
             }
         },
