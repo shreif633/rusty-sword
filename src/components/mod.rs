@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod aggro;
 pub mod appearance;
 pub mod base_points;

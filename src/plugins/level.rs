@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::components::admin::Admin;
 use crate::components::aggro::Aggro;
 use crate::components::dead::Dead;
 use crate::components::experience::Experience;
@@ -18,6 +19,7 @@ impl Plugin for LevelPlugin {
         app.add_systems(Update, attempt_level_up);
         app.add_systems(Update, add_level_up_effect);
         app.add_systems(Update, broadcast_new_level);
+        app.add_systems(Update, update_admin_level);
     }
 }
 
@@ -27,16 +29,14 @@ fn distribute_experience(mut query: Query<(&mut Aggro, &Experience, &Level), (Ad
         for (entity, points) in &aggro.list {
             if let Ok((mut experience, experience_rate, player_level, socket_writer)) = players.get_mut(*entity) {
                 let percentage: i64 = (total_aggro * 100 / points).into();
-                println!("percentage {}", percentage);
                 let partial_experience = target_experience.experience * 100 / percentage;
-                println!("partial_experience {}", partial_experience);
                 let partial_experience = partial_experience * experience_rate.percentage as i64 / 100;
-                println!("partial_experience rate {}", partial_experience);
                 let partial_experience = partial_experience * player_level.get_target_color(target_level.level).experience_rate() as i64 / 100;
-                println!("partial_experience color {}", partial_experience);
-                experience.experience += partial_experience;
-                let player_experience_response = PlayerExperienceResponse { current_experience: experience.experience, added_experience: partial_experience };
-                socket_writer.write(&mut (&player_experience_response).into());
+                if partial_experience > 0 {
+                    experience.experience += partial_experience;
+                    let player_experience_response = PlayerExperienceResponse { current_experience: experience.experience, added_experience: partial_experience };
+                    socket_writer.write(&mut (&player_experience_response).into());
+                }
             }
         }
         aggro.list.clear();
@@ -47,6 +47,15 @@ fn attempt_level_up(mut query: Query<(&mut Level, &Experience), Changed<Experien
     for (mut level, experience) in query.iter_mut() {
         while experience.should_level_up(level.level) {
             level.level += 1;
+        }
+    }
+}
+
+fn update_admin_level(mut query: Query<(&mut Level, &Experience), (Changed<Experience>, With<Admin>)>) {
+    for (mut level, experience) in query.iter_mut() {
+        let calculated_level = experience.calculate_level();
+        if level.level != calculated_level {
+            level.level = calculated_level;
         }
     }
 }

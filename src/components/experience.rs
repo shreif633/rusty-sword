@@ -17,6 +17,10 @@ impl Experience {
         1
     }  
 
+	pub fn set_to_level(&mut self, level: u8) {
+		self.experience = EXPERIENCE_TABLE[level as usize - 1];
+	}
+
 	pub fn should_level_up(&self, current_level: u8) -> bool {
 		EXPERIENCE_TABLE[current_level as usize] <= self.experience
 	}  

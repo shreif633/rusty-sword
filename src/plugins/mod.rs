@@ -13,6 +13,7 @@ pub mod persist_item;
 pub mod persist_player;
 pub mod player_health;
 pub mod inventory;
+pub mod level_command;
 pub mod level;
 pub mod medicine;
 pub mod skills;

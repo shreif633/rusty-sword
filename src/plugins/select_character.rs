@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::bundles::player::PlayerBundle;
+use crate::components::admin::Admin;
 use crate::components::base_points::BasePoints;
 use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::current_magic_points::CurrentMagicPoints;
@@ -39,6 +40,7 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
         if let Some(player_row) = find_user_player_by_id(&database, user.id, client_packet.character_id) {
             players_map.map.insert(player_row.id, entity);
             commands.entity(entity).insert(PlayerBundle::new(&player_row));
+            commands.entity(entity).insert(Admin);
         }
         commands.entity(entity).remove::<SelectCharacterRequest>();
     }
