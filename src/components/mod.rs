@@ -7,6 +7,7 @@ pub mod beheadable;
 pub mod cooldown;
 pub mod current_health_points;
 pub mod current_magic_points;
+pub mod damage;
 pub mod dead;
 pub mod direction;
 pub mod experience_rate;

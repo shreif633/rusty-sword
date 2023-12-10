@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use std::time::Duration;
 use crate::components::aggro::Aggro;
 use crate::components::current_health_points::CurrentHealthPoints;
+use crate::components::damage::Damage;
+use crate::components::dead::Dead;
 use crate::components::id::Id;
 use crate::components::monster::Monster;
 use crate::components::observers::Observers;
@@ -9,9 +11,11 @@ use crate::components::player::Player;
 use crate::components::position::Position;
 use crate::components::walking::Walking;
 use crate::enums::damage_type::DamageType;
+use crate::enums::target_type::TargetType;
 use crate::framework::entity_map::EntityMap;
 use crate::requests::normal_hit::NormalHitRequest;
 use crate::responses::normal_hit_damage::NormalHitDamageResponse;
+use crate::responses::skill_execute::SkillExecuteResponse;
 use super::tcp_server::SocketWriter;
 
 pub struct NormalHitPlugin;
@@ -19,6 +23,7 @@ pub struct NormalHitPlugin;
 impl Plugin for NormalHitPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, stop_attacking_when_moving);
+        app.add_systems(PreUpdate, stop_attacking_when_enemy_dies);
         app.add_systems(Update, handle_normal_hit);
         app.add_systems(Update, tick_normal_hit);
         app.add_systems(PostUpdate, defend_damage);
@@ -50,19 +55,6 @@ fn handle_normal_hit(mut commands: Commands, mut players_query: Query<(Entity, &
     }
 }
 
-enum DamageNature {
-    Normal
-}
-
-#[derive(Component)]
-struct Damage {
-    source: Entity,
-    target: Entity,
-    damage: u32,
-    aggro_multiplier: f32,
-    nature: DamageNature
-}
-
 fn tick_normal_hit(mut commands: Commands, mut attackers: Query<(Entity, &mut NormalHitTarget, &Position), With<Player>>, mut targets: Query<(Entity, &Position), With<Monster>>, time: Res<Time>) {
     for (entity, mut normal_hit_target, position) in attackers.iter_mut() {
         normal_hit_target.timer.tick(time.delta());
@@ -70,7 +62,15 @@ fn tick_normal_hit(mut commands: Commands, mut attackers: Query<(Entity, &mut No
             if let Ok((monster_entity, monster_position)) = targets.get_mut(normal_hit_target.target) {
                 let damage = 50;
                 if monster_position.is_in_sight(position) {
-                    commands.spawn(Damage { source: entity, target: monster_entity, damage, aggro_multiplier: 1.0, nature: DamageNature::Normal });
+                    let damage = Damage { 
+                        source: entity, 
+                        target: monster_entity, 
+                        damage, 
+                        aggro_multiplier: 1.0,
+                        skill_index: None,
+                        animation: None
+                    };
+                    commands.spawn(damage);
                 }
             }
         }
@@ -88,25 +88,43 @@ fn calculate_damage(mut commands: Commands, damages: Query<(Entity, &Damage), Ad
         if let Ok((target_id, mut target_current_health_points, target_observers, optional_aggro)) = targets.get_mut(damage.target) {
             if let Ok(attacker_id) = attackers.get(damage.source) {
                 target_current_health_points.sub(damage.damage);
-                if target_current_health_points.current_health_points == 0 {
-                    commands.entity(damage.source).remove::<NormalHitTarget>();
-                }
                 if let Some(mut aggro) = optional_aggro {
                     let total_aggro: u32 = (damage.damage as f32 * damage.aggro_multiplier) as u32;
                     aggro.add(damage.source, total_aggro);
                 }
                 commands.entity(damage_entity).despawn();
-                let normal_hit_damage_response = NormalHitDamageResponse {
-                    attacker_id: attacker_id.id,
-                    target_id: target_id.id,
-                    normal_damage: damage.damage,
-                    explosive_blow_damage: 0,
-                    damage_type: DamageType::Normal,
-                    soul_pocket_damage: 0,
-                };
-                for entity in &target_observers.entities {
-                    if let Ok(observer_socket_writer) = observers.get(*entity) {
-                        observer_socket_writer.write(&mut (&normal_hit_damage_response).into());
+                if let Some(animation) = damage.animation {
+                    if let Some(skill_index) = damage.skill_index {
+                        let skill_execute_response = SkillExecuteResponse { 
+                            skill_index, 
+                            player_id: attacker_id.id, 
+                            target_id: target_id.id, 
+                            target_type: TargetType::Monster, 
+                            unknown: animation, 
+                            normal_damage: Some(damage.damage as u16), 
+                            explosive_blow_damage: Some(0), 
+                            damage_type: Some(DamageType::Normal), 
+                            soul_pocket_damage: Some(0) 
+                        };
+                        for entity in &target_observers.entities {
+                            if let Ok(observer_socket_writer) = observers.get(*entity) {
+                                observer_socket_writer.write(&mut (&skill_execute_response).into());
+                            }
+                        }
+                    }   
+                } else {
+                    let normal_hit_damage_response = NormalHitDamageResponse {
+                        attacker_id: attacker_id.id,
+                        target_id: target_id.id,
+                        normal_damage: damage.damage,
+                        explosive_blow_damage: 0,
+                        damage_type: DamageType::Normal,
+                        soul_pocket_damage: 0,
+                    };
+                    for entity in &target_observers.entities {
+                        if let Ok(observer_socket_writer) = observers.get(*entity) {
+                            observer_socket_writer.write(&mut (&normal_hit_damage_response).into());
+                        }
                     }
                 }
             }
@@ -117,6 +135,18 @@ fn calculate_damage(mut commands: Commands, damages: Query<(Entity, &Damage), Ad
 fn stop_attacking_when_moving(mut commands: Commands, query: Query<Entity, (With<Walking>, With<NormalHitTarget>)>) {
     for entity in &query {
         commands.entity(entity).remove::<NormalHitTarget>();
+    }
+}
+
+fn stop_attacking_when_enemy_dies(
+    mut commands: Commands, 
+    query: Query<(Entity, &NormalHitTarget)>,
+    targets: Query<&Dead>
+) {
+    for (entity, skill) in &query {
+        if targets.get(skill.target).is_ok() {
+            commands.entity(entity).remove::<NormalHitTarget>();
+        }
     }
 }
 

@@ -1,15 +1,8 @@
+use crate::enums::damage_type::DamageType;
 use crate::enums::target_type::TargetType;
 use crate::framework::packet::Packet;
 
 pub const HEADER: u8 = 63;
-
-#[derive(Debug)]
-#[repr(u8)]
-pub enum DamageType {
-    Miss = 0,
-    Normal = 1,
-    Critical = 3,
-}
 
 #[derive(Debug)]
 pub struct SkillExecuteResponse {

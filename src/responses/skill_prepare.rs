@@ -7,7 +7,7 @@ pub struct SkillPrepareResponse {
     pub player_id: i32,
     pub unknown: u8,
     pub skill_index: Option<u8>,
-    pub target_id: Option<u32>,
+    pub target_id: Option<i32>,
 }
 
 impl From<&mut Packet> for SkillPrepareResponse {
@@ -18,7 +18,7 @@ impl From<&mut Packet> for SkillPrepareResponse {
             (None, None)
         } else {
             let skill_index = packet.get_u8();
-            let target_id = packet.get_u32();
+            let target_id = packet.get_i32();
             (Some(skill_index), Some(target_id))
         };
         SkillPrepareResponse { player_id, unknown, skill_index, target_id }
@@ -34,7 +34,7 @@ impl From<&SkillPrepareResponse> for Packet {
             packet.write_u8(skill_index);
         }
         if let Some(target_id) = val.target_id {
-            packet.write_u32(target_id);
+            packet.write_i32(target_id);
         }
         packet
     }

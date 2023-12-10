@@ -20,4 +20,5 @@ pub mod skills;
 pub mod monsters_lifecycle;
 pub mod spawn_npcs;
 pub mod speed;
+pub mod staggering_blow;
 pub mod visual_effects;

@@ -17,7 +17,7 @@ use crate::components::previous::Previous;
 use crate::components::monster::Monster;
 use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::maximum_health_points::MaximumHealthPoints;
-use crate::framework::packet::Packet;
+use crate::responses::skill_prepare::SkillPrepareResponse;
 use super::tcp_server::SocketWriter;
 
 pub struct MonstersLifecyclePlugin;
@@ -127,10 +127,8 @@ fn broadcast_death_animation(monsters: Query<(&Id, &Observers), Added<DeathTimer
     for (monster_id, monster_observers) in &monsters {
         for entity in &monster_observers.entities {
             if let Ok(observer_socket_writer) = observers.get(*entity) {
-                let mut response = Packet::from(61);
-                response.write_i32(monster_id.id);
-                response.write_buffer(&[9]); // 10 = behead  - 8 = knee
-                observer_socket_writer.write(&mut response);
+                let animation_response = SkillPrepareResponse { player_id: monster_id.id, unknown: 9, skill_index: None, target_id: None };
+                observer_socket_writer.write(&mut (&animation_response).into());
             }
         }
     }
@@ -140,10 +138,8 @@ fn broadcast_knee_animation(monsters: Query<(&Id, &Observers), Added<BeheadTimer
      for (monster_id, monster_observers) in &monsters {
         for entity in &monster_observers.entities {
             if let Ok(observer_socket_writer) = observers.get(*entity) {
-                let mut response = Packet::from(61);
-                response.write_i32(monster_id.id);
-                response.write_buffer(&[8]); // 8 = bh
-                observer_socket_writer.write(&mut response);
+                let animation_response = SkillPrepareResponse { player_id: monster_id.id, unknown: 8, skill_index: None, target_id: None };
+                observer_socket_writer.write(&mut (&animation_response).into());
             }
         }
     }

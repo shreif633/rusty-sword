@@ -9,10 +9,10 @@ use crate::components::monster::Monster;
 use crate::components::position::Position;
 use crate::enums::target_type::TargetType;
 use crate::framework::entity_map::EntityMap;
-use crate::framework::packet::Packet;
 use crate::requests::skill_execute::SkillExecuteRequest;
 use crate::requests::skill_prepare::SkillPrepareRequest;
 use crate::responses::skill_execute::SkillExecuteResponse;
+use crate::responses::skill_prepare::SkillPrepareResponse;
 use super::tcp_server::SocketWriter;
 
 pub struct BeheadPlugin;
@@ -20,7 +20,6 @@ pub struct BeheadPlugin;
 impl Plugin for BeheadPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, handle_behead_skill);
-        // app.add_systems(Update, handle_skill_prepare);
         app.add_systems(Update, handle_skill_execute);
         app.add_systems(Last, clear_skill_execute);
         app.add_systems(Last, clear_skill_prepare);
@@ -32,20 +31,6 @@ struct SkillBehead {
     from: Entity,
     to: Entity,
 }
-
-// fn handle_skill_prepare(mut commands: Commands, query: Query<(Entity, &SkillPrepareRequest, &Position)>, monsters_query: Query<(Entity, &Position), With<BeheadTimer>>, monsters_map: Res<EntityMap<Monster>>) {
-//     for (entity, client_packet, position) in &query {
-//         if client_packet.skill_index == 1 {
-//             if let Some(monster_entity) = monsters_map.map.get(&client_packet.target_id) {
-//                 if let Ok((monster_entity, monster_position)) = monsters_query.get(*monster_entity) {
-//                     if position.is_in_sight(monster_position) {
-//                         commands.spawn(SkillBehead { from: entity, to: monster_entity });
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 fn clear_skill_prepare(mut commands: Commands, query: Query<Entity, With<SkillPrepareRequest>>) {
     for entity in &query {
@@ -86,10 +71,10 @@ fn handle_behead_skill(
             if let Ok((player_id, mut current_health_points, maximum_health_points, mut current_magic_points, maximum_magic_points, socket_writer)) = players.get_mut(behead_skills.from) {
                 current_health_points.current_health_points += maximum_health_points.maximum_health_points / 10;
                 current_magic_points.current_magic_points += maximum_magic_points.maximum_magic_points / 10;
-                let mut response = Packet::from(61);
-                response.write_i32(monster_id.id);
-                response.write_buffer(&[10]); // 8 = bh
-                socket_writer.write(&mut response);
+
+                let skill_prepare_response = SkillPrepareResponse { player_id: monster_id.id, unknown: 10, skill_index: None, target_id: None };
+                socket_writer.write(&mut (&skill_prepare_response).into());
+
                 let skill_execute_response = SkillExecuteResponse { 
                     skill_index: 1, 
                     player_id: player_id.id, 

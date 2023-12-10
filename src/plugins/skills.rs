@@ -40,7 +40,7 @@ fn query_player_skills(database: &Database, player_id: i32) -> Vec<Skill> {
         skills.push(skill);
     }
     skills.push(Skill { id: 1, index: 1, grade: 1 });
-    // skills.push(Skill { id: 3, index: 3, grade: 1 });
+    skills.push(Skill { id: 3, index: 3, grade: 1 });
     skills
 }
 
