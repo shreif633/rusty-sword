@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use std::time::Duration;
 use crate::components::aggro::Aggro;
+use crate::components::animation::Animation;
 use crate::components::behead_timer::BeheadTimer;
 use crate::components::beheadable::Beheadable;
 use crate::components::dead::Dead;
@@ -17,8 +18,6 @@ use crate::components::previous::Previous;
 use crate::components::monster::Monster;
 use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::maximum_health_points::MaximumHealthPoints;
-use crate::responses::skill_prepare::SkillPrepareResponse;
-use super::tcp_server::SocketWriter;
 
 pub struct MonstersLifecyclePlugin;
 
@@ -29,8 +28,6 @@ impl Plugin for MonstersLifecyclePlugin {
         app.add_systems(Update, tick_death);
         app.add_systems(PostUpdate, mark_monster_as_dead);
         app.add_systems(Update, tick_respawn);
-        app.add_systems(Last, broadcast_death_animation);
-        app.add_systems(Last, broadcast_knee_animation);
     }
 }
 
@@ -82,9 +79,15 @@ fn mark_monster_as_dead(mut commands: Commands, monsters_query: Query<(Entity, &
         if current_health_points.current_health_points == 0 {
             commands.entity(entity).insert(Dead);
             if optional_beheadable.is_some() {
-                commands.entity(entity).insert(BeheadTimer { timer: Timer::new(Duration::from_millis(5000), TimerMode::Once) });
+                commands.entity(entity).insert((
+                    BeheadTimer { timer: Timer::new(Duration::from_millis(5000), TimerMode::Once) },
+                    Animation::without_target(8)
+                ));
             } else {
-                commands.entity(entity).insert(DeathTimer { timer: Timer::new(Duration::from_millis(5000), TimerMode::Once) });
+                commands.entity(entity).insert((
+                    DeathTimer { timer: Timer::new(Duration::from_millis(5000), TimerMode::Once) },
+                    Animation::without_target(9)
+                ));
             }
         }
     }
@@ -94,7 +97,10 @@ fn tick_behead(mut commands: Commands, mut query: Query<(Entity, &mut BeheadTime
     for (entity, mut beheadable) in query.iter_mut() {
         beheadable.timer.tick(time.delta());
         if beheadable.timer.just_finished() {
-            commands.entity(entity).insert(DeathTimer { timer: Timer::new(Duration::from_millis(5000), TimerMode::Once) });
+            commands.entity(entity).insert((
+                DeathTimer { timer: Timer::new(Duration::from_millis(5000), TimerMode::Once) },
+                Animation::without_target(9)
+            ));
             commands.entity(entity).remove::<BeheadTimer>();
         }
     }
@@ -119,28 +125,6 @@ fn tick_respawn(mut commands: Commands, mut query: Query<(Entity, &Spawn, &mut R
             position.respawn(spawn);
             commands.entity(entity).remove::<RespawnTimer>();
             commands.entity(entity).remove::<Dead>();
-        }
-    }
-}
-
-fn broadcast_death_animation(monsters: Query<(&Id, &Observers), Added<DeathTimer>>, observers: Query<&SocketWriter>) {
-    for (monster_id, monster_observers) in &monsters {
-        for entity in &monster_observers.entities {
-            if let Ok(observer_socket_writer) = observers.get(*entity) {
-                let animation_response = SkillPrepareResponse { player_id: monster_id.id, unknown: 9, skill_index: None, target_id: None };
-                observer_socket_writer.write(&mut (&animation_response).into());
-            }
-        }
-    }
-}
-
-fn broadcast_knee_animation(monsters: Query<(&Id, &Observers), Added<BeheadTimer>>, observers: Query<&SocketWriter>) {
-     for (monster_id, monster_observers) in &monsters {
-        for entity in &monster_observers.entities {
-            if let Ok(observer_socket_writer) = observers.get(*entity) {
-                let animation_response = SkillPrepareResponse { player_id: monster_id.id, unknown: 8, skill_index: None, target_id: None };
-                observer_socket_writer.write(&mut (&animation_response).into());
-            }
         }
     }
 }

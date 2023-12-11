@@ -1,3 +1,4 @@
+pub mod animation;
 pub mod appear_disappear;
 pub mod select_server;
 pub mod normal_hit;
@@ -9,6 +10,7 @@ pub mod player_movement;
 pub mod emote;
 pub mod framerate;
 pub mod chat;
+pub mod damage;
 pub mod persist_item;
 pub mod persist_player;
 pub mod player_health;

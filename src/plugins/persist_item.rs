@@ -40,15 +40,16 @@ fn persist_items_quantities(
     database: Res<Database>, 
     time: Res<Time>
 ) {
-    let mut timer = timer.get_single_mut().unwrap();
-    timer.timer.tick(time.delta());
-    if timer.timer.just_finished() {
-        let mut changesets = Vec::<ItemUpdateQuantityChangeset>::new();
-        for (entity, item, item_quantity) in &query {
-            let changeset = ItemUpdateQuantityChangeset { id: item.id, quantity: item_quantity.quantity };
-            changesets.push(changeset);
-            commands.entity(entity).remove::<ShouldPersist>();
+    if let Ok(mut timer) = timer.get_single_mut() {
+        timer.timer.tick(time.delta());
+        if timer.timer.just_finished() {
+            let mut changesets = Vec::<ItemUpdateQuantityChangeset>::new();
+            for (entity, item, item_quantity) in &query {
+                let changeset = ItemUpdateQuantityChangeset { id: item.id, quantity: item_quantity.quantity };
+                changesets.push(changeset);
+                commands.entity(entity).remove::<ShouldPersist>();
+            }
+            update_all_item_quantity_by_id(&database, &changesets);
         }
-        update_all_item_quantity_by_id(&database, &changesets);
     }
 }   

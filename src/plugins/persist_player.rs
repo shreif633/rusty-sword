@@ -29,14 +29,15 @@ fn persist_player(
     time: Res<Time>,
     database: Res<Database>
 ) {
-    let mut timer = timer.get_single_mut().unwrap();
-    timer.timer.tick(time.delta());
-    if timer.timer.just_finished() {
-        let mut changesets = Vec::<PlayerUpdatePositionChangeset>::new();
-        for (id, position) in &players_query {
-            let changeset = PlayerUpdatePositionChangeset { id: id.id, x: position.x, y: position.y, z: position.z };
-            changesets.push(changeset);
+    if let Ok(mut timer) = timer.get_single_mut() {
+        timer.timer.tick(time.delta());
+        if timer.timer.just_finished() {
+            let mut changesets = Vec::<PlayerUpdatePositionChangeset>::new();
+            for (id, position) in &players_query {
+                let changeset = PlayerUpdatePositionChangeset { id: id.id, x: position.x, y: position.y, z: position.z };
+                changesets.push(changeset);
+            }
+            update_all_player_position_by_id(&database, &changesets);
         }
-        update_all_player_position_by_id(&database, &changesets);
     }
 } 

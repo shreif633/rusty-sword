@@ -1,18 +1,15 @@
 use bevy::prelude::*;
 use std::time::Duration;
+use crate::components::animation::Animation;
 use crate::components::current_magic_points::CurrentMagicPoints;
 use crate::components::damage::Damage;
 use crate::components::dead::Dead;
-use crate::components::id::Id;
 use crate::components::monster::Monster;
-use crate::components::observers::Observers;
 use crate::components::player::Player;
 use crate::components::position::Position;
 use crate::components::walking::Walking;
 use crate::framework::entity_map::EntityMap;
 use crate::requests::skill_prepare::SkillPrepareRequest;
-use crate::responses::skill_prepare::SkillPrepareResponse;
-use super::tcp_server::SocketWriter;
 
 const MANA_COST: u16 = 150;
 
@@ -95,29 +92,19 @@ fn tick_cast_timer(
 }
 
 fn tick_continue_timer(
-    mut attackers: Query<(&Id, &mut StaggeringBlowSkill, &Position, &Observers), With<Player>>, 
-    mut targets: Query<(&Id, &Position), With<Monster>>,
-    observers: Query<&SocketWriter>,
+    mut commands: Commands, 
+    mut attackers: Query<(Entity, &mut StaggeringBlowSkill, &Position), With<Player>>, 
+    mut targets: Query<(Entity, &Position), With<Monster>>,
     time: Res<Time>
 ) {
-    for (player_id, mut staggering_blow_skill, position, attacker_observers) in attackers.iter_mut() {
+    for (entity, mut staggering_blow_skill, position) in attackers.iter_mut() {
         if !staggering_blow_skill.casting {
             let just_started = staggering_blow_skill.continue_timer.elapsed_secs() == 0.0;
             staggering_blow_skill.continue_timer.tick(time.delta());
             if staggering_blow_skill.continue_timer.just_finished() || just_started {
-                if let Ok((monster_id, monster_position)) = targets.get_mut(staggering_blow_skill.target) {
+                if let Ok((monster_entity, monster_position)) = targets.get_mut(staggering_blow_skill.target) {
                     if monster_position.is_in_sight(position) {
-                        let skill_execute_response = SkillPrepareResponse { 
-                            player_id: player_id.id, 
-                            unknown: 5, 
-                            skill_index: Some(3), 
-                            target_id: Some(monster_id.id) 
-                        };
-                        for entity in &attacker_observers.entities {
-                            if let Ok(observer_socket_writer) = observers.get(*entity) {
-                                observer_socket_writer.write(&mut (&skill_execute_response).into());
-                            }
-                        }
+                        commands.entity(entity).insert(Animation::with_target(5, 3, monster_entity));
                         staggering_blow_skill.casting = true;
                     }
                 }

@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod aggro;
+pub mod animation;
 pub mod appearance;
 pub mod base_points;
 pub mod behead_timer;
@@ -32,6 +33,7 @@ pub mod player;
 pub mod position;
 pub mod previous;
 pub mod rage;
+pub mod skill_animation;
 pub mod spawn;
 pub mod speed;
 pub mod user;

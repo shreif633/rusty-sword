@@ -1,22 +1,13 @@
 use bevy::prelude::*;
 use std::time::Duration;
-use crate::components::aggro::Aggro;
-use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::damage::Damage;
 use crate::components::dead::Dead;
-use crate::components::id::Id;
 use crate::components::monster::Monster;
-use crate::components::observers::Observers;
 use crate::components::player::Player;
 use crate::components::position::Position;
 use crate::components::walking::Walking;
-use crate::enums::damage_type::DamageType;
-use crate::enums::target_type::TargetType;
 use crate::framework::entity_map::EntityMap;
 use crate::requests::normal_hit::NormalHitRequest;
-use crate::responses::normal_hit_damage::NormalHitDamageResponse;
-use crate::responses::skill_execute::SkillExecuteResponse;
-use super::tcp_server::SocketWriter;
 
 pub struct NormalHitPlugin;
 
@@ -26,8 +17,6 @@ impl Plugin for NormalHitPlugin {
         app.add_systems(PreUpdate, stop_attacking_when_enemy_dies);
         app.add_systems(Update, handle_normal_hit);
         app.add_systems(Update, tick_normal_hit);
-        app.add_systems(PostUpdate, defend_damage);
-        app.add_systems(Last, calculate_damage);
     }
 }
 
@@ -77,61 +66,6 @@ fn tick_normal_hit(mut commands: Commands, mut attackers: Query<(Entity, &mut No
     }
 }
 
-fn defend_damage(mut damages: Query<&mut Damage, Added<Damage>>) {
-    for mut damage in damages.iter_mut() {
-        damage.damage -= 2;
-    }
-}
-
-fn calculate_damage(mut commands: Commands, damages: Query<(Entity, &Damage), Added<Damage>>, mut targets: Query<(&Id, &mut CurrentHealthPoints, &Observers, Option<&mut Aggro>)>, attackers: Query<&Id>, observers: Query<&SocketWriter>) {
-    for (damage_entity, damage) in damages.iter() {
-        if let Ok((target_id, mut target_current_health_points, target_observers, optional_aggro)) = targets.get_mut(damage.target) {
-            if let Ok(attacker_id) = attackers.get(damage.source) {
-                target_current_health_points.sub(damage.damage);
-                if let Some(mut aggro) = optional_aggro {
-                    let total_aggro: u32 = (damage.damage as f32 * damage.aggro_multiplier) as u32;
-                    aggro.add(damage.source, total_aggro);
-                }
-                commands.entity(damage_entity).despawn();
-                if let Some(animation) = damage.animation {
-                    if let Some(skill_index) = damage.skill_index {
-                        let skill_execute_response = SkillExecuteResponse { 
-                            skill_index, 
-                            player_id: attacker_id.id, 
-                            target_id: target_id.id, 
-                            target_type: TargetType::Monster, 
-                            unknown: animation, 
-                            normal_damage: Some(damage.damage as u16), 
-                            explosive_blow_damage: Some(0), 
-                            damage_type: Some(DamageType::Normal), 
-                            soul_pocket_damage: Some(0) 
-                        };
-                        for entity in &target_observers.entities {
-                            if let Ok(observer_socket_writer) = observers.get(*entity) {
-                                observer_socket_writer.write(&mut (&skill_execute_response).into());
-                            }
-                        }
-                    }   
-                } else {
-                    let normal_hit_damage_response = NormalHitDamageResponse {
-                        attacker_id: attacker_id.id,
-                        target_id: target_id.id,
-                        normal_damage: damage.damage,
-                        explosive_blow_damage: 0,
-                        damage_type: DamageType::Normal,
-                        soul_pocket_damage: 0,
-                    };
-                    for entity in &target_observers.entities {
-                        if let Ok(observer_socket_writer) = observers.get(*entity) {
-                            observer_socket_writer.write(&mut (&normal_hit_damage_response).into());
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 fn stop_attacking_when_moving(mut commands: Commands, query: Query<Entity, (With<Walking>, With<NormalHitTarget>)>) {
     for entity in &query {
         commands.entity(entity).remove::<NormalHitTarget>();
@@ -159,3 +93,24 @@ fn stop_attacking_when_enemy_dies(
 // rest
 // monster follow
 // level up
+
+// CChar::WriteInSight(this->GetOffset(), 10, "bbddddd", GetType, SkillID, this->GetID(), Target.GetID(), MaxDmg, EBDamage, 0);
+
+// [response] Unknown(Packet { buffer: [25, 0, 10, 1, 24, 234, 120, 0, 0, 113, 93, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], cursor: 3 })
+// [response] Unknown(Packet { buffer: [25, 0, 10, 1, 24, 234, 120, 0, 0, 116, 93, 0, 0, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], cursor: 3 })
+// [response] Unknown(Packet { buffer: [25, 0, 10, 1, 24, 234, 120, 0, 0, 116, 93, 0, 0, 23, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], cursor: 3 })
+
+// pub const HEADER: u8 = 10;
+
+// #[derive(Debug)]
+// pub struct SkillExecuteResponse {
+//     pub target_type: TargetType,
+//     pub skill_index: u8,
+//     pub player_id: i32,
+//     pub target_id: i32,
+//     // pub unknown: u8,
+//     pub normal_damage: Option<u16>,
+//     pub explosive_blow_damage: Option<u16>,
+//     // pub damage_type: Option<DamageType>,
+//     pub soul_pocket_damage: Option<u16>
+// }

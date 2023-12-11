@@ -24,7 +24,7 @@ pub mod player_extra_wisdom;
 pub mod player_extra_agility;
 pub mod general_state;
 pub mod guild_members;
-pub mod skill_prepare;
+pub mod animation;
 pub mod skill_execute;
 pub mod chat_message;
 pub mod player_walk;
@@ -61,7 +61,7 @@ pub enum ServerPacket {
     PlayerExtraWisdom(self::player_extra_wisdom::PlayerExtraWisdomResponse),
     PlayerExtraAgility(self::player_extra_agility::PlayerExtraAgilityResponse),
     GuildMembers(self::guild_members::GuildMembersResponse),
-    SkillPrepare(self::skill_prepare::SkillPrepareResponse),
+    SkillPrepare(self::animation::AnimationResponse),
     SkillExecute(self::skill_execute::SkillExecuteResponse),
     ChatMessage(self::chat_message::ChatMessageResponse),
     PlayerWalk(self::player_walk::PlayerWalkResponse),
@@ -102,7 +102,7 @@ pub fn deserialize(buffer: &[u8]) -> ServerPacket {
         self::player_skills::HEADER => ServerPacket::PlayerSkills(self::player_skills::PlayerSkillsResponse::from(&mut packet)),
         self::inventory::HEADER => ServerPacket::Inventory(self::inventory::InventoryResponse::from(&mut packet)),
         self::player_information::HEADER => ServerPacket::PlayerInformation(self::player_information::PlayerInformationResponse::from(&mut packet)),
-        self::skill_prepare::HEADER => ServerPacket::SkillPrepare(self::skill_prepare::SkillPrepareResponse::from(&mut packet)),
+        self::animation::HEADER => ServerPacket::SkillPrepare(self::animation::AnimationResponse::from(&mut packet)),
         self::skill_execute::HEADER => ServerPacket::SkillExecute(self::skill_execute::SkillExecuteResponse::from(&mut packet)),
         self::chat_message::HEADER => ServerPacket::ChatMessage(self::chat_message::ChatMessageResponse::from(&mut packet)),
         self::player_walk::HEADER => ServerPacket::PlayerWalk(self::player_walk::PlayerWalkResponse::from(&mut packet)),

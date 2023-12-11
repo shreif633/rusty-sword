@@ -3,12 +3,16 @@ use std::sync::{Mutex, Arc};
 use tokio::sync::mpsc::Sender;
 use crate::framework::packet::Packet;
 use crate::requests::ClientPacket;
+use crate::requests::skill_execute::SkillExecuteRequest;
+use crate::requests::skill_prepare::SkillPrepareRequest;
 
 pub struct TcpServerPlugin;
 
 impl Plugin for TcpServerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(First, process_socket_queue);
+        app.add_systems(Last, clear_skill_execute);
+        app.add_systems(Last, clear_skill_prepare);
     }
 }
 
@@ -90,4 +94,16 @@ fn process_socket_queue(mut commands: Commands, queue: ResMut<SocketQueue>, enti
             SocketMessage::Disconnected => (),
         };
     })
+}
+
+fn clear_skill_prepare(mut commands: Commands, query: Query<Entity, With<SkillPrepareRequest>>) {
+    for entity in &query {
+        commands.entity(entity).remove::<SkillPrepareRequest>();
+    }
+}
+
+fn clear_skill_execute(mut commands: Commands, query: Query<Entity, With<SkillExecuteRequest>>) {
+    for entity in &query {
+        commands.entity(entity).remove::<SkillExecuteRequest>();
+    }
 }
