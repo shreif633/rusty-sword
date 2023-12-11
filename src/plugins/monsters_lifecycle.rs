@@ -7,7 +7,7 @@ use crate::components::beheadable::Beheadable;
 use crate::components::dead::Dead;
 use crate::components::experience::Experience;
 use crate::components::level::Level;
-use crate::components::observers::Observers;
+use crate::components::network_observers::NetworkObservers;
 use crate::components::spawn::Spawn;
 use crate::framework::entity_map::EntityMap;
 use crate::components::id::Id;
@@ -61,7 +61,7 @@ fn spawn_monsters(mut commands: Commands, monsters_configs: Res<MonstersConfig>,
                         current_health_points: CurrentHealthPoints { current_health_points: 100 }, 
                         previous_current_health_points: Previous::from(CurrentHealthPoints { current_health_points: 100 }),
                         spawn: spawn.clone(),
-                        observers: Observers::new(),
+                        observers: NetworkObservers::new(),
                         aggro: Aggro::new()
                     }
                 ).id();

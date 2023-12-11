@@ -10,6 +10,7 @@ use crate::components::final_points::FinalPoints;
 use crate::components::magical_attack::MagicalAttack;
 use crate::components::maximum_health_points::MaximumHealthPoints;
 use crate::components::maximum_magic_points::MaximumMagicPoints;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::physical_attack::PhysicalAttack;
 use crate::components::player::Player;
 use crate::components::rage::Rage;
@@ -24,7 +25,6 @@ use crate::responses::player_extra_wisdom::PlayerExtraWisdomResponse;
 use crate::responses::player_extra_agility::PlayerExtraAgilityResponse;
 use crate::responses::player_information::PlayerInformationResponse;
 use crate::requests::select_character::SelectCharacterRequest;
-use super::tcp_server::SocketWriter;
 
 pub struct SelectCharacterPlugin;
 
@@ -46,7 +46,7 @@ fn handle_select_character(mut commands: Commands, query: Query<(Entity, &User, 
     }
 }
 
-fn character_information(query: Query<(&Player, &BasePoints, &ExtraPoints, &FinalPoints, &PhysicalAttack, &MagicalAttack, &CurrentHealthPoints, &MaximumHealthPoints, &CurrentMagicPoints, &MaximumMagicPoints, &Rage, &Experience, &SocketWriter), Added<Player>>) {
+fn character_information(query: Query<(&Player, &BasePoints, &ExtraPoints, &FinalPoints, &PhysicalAttack, &MagicalAttack, &CurrentHealthPoints, &MaximumHealthPoints, &CurrentMagicPoints, &MaximumMagicPoints, &Rage, &Experience, &NetworkWriter), Added<Player>>) {
     for (player, base_points, extra_points, final_points, physical_attack, magical_attack, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, rage, experience, socket_writer) in &query {
         let player_information = PlayerInformationResponse::new(player, base_points, current_health_points, maximum_health_points, current_magic_points, maximum_magic_points, final_points, experience, physical_attack, magical_attack, rage);
         socket_writer.write(&mut (&player_information).into());

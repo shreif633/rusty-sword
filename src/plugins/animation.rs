@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use crate::components::animation::Animation;
-use crate::components::observers::Observers;
+use crate::components::network_writer::NetworkWriter;
+use crate::components::network_observers::NetworkObservers;
 use crate::components::id::Id;
 use crate::components::skill_animation::SkillAnimation;
 use crate::responses::animation::AnimationResponse;
-use crate::responses::skill_execute::SkillExecuteResponse;
-use super::tcp_server::SocketWriter;
+use crate::responses::skill_animation::SkillAnimationResponse;
 
 pub struct AnimationPlugin;
 
@@ -18,9 +18,9 @@ impl Plugin for AnimationPlugin {
 
 fn broadcast_animation(
     mut commands: Commands, 
-    query: Query<(Entity, &Id, &Animation, &Observers)>, 
+    query: Query<(Entity, &Id, &Animation, &NetworkObservers)>, 
     targets: Query<&Id>, 
-    observers: Query<&SocketWriter>
+    observers: Query<&NetworkWriter>
 ) {
      for (entity, id, animation, monster_observers) in &query {
         let target_id = if let Some(target_entity) = animation.target {
@@ -49,19 +49,18 @@ fn broadcast_animation(
 
 fn broadcast_skill_animation(
     mut commands: Commands, 
-    players: Query<(Entity, &Id, &SkillAnimation, &Observers)>, 
+    players: Query<(Entity, &Id, &SkillAnimation, &NetworkObservers)>, 
     targets: Query<&Id>, 
-    observers: Query<&SocketWriter>
+    observers: Query<&NetworkWriter>
 ) {
      for (entity, id, skill_animation, player_observers) in &players {
-        println!("SKILL ANIMATION!");
         if let Ok(target_id) = targets.get(skill_animation.target) {
-            let skill_animation_response = SkillExecuteResponse { 
+            let skill_animation_response = SkillAnimationResponse { 
                 skill_index: skill_animation.skill_index, 
                 player_id: id.id, 
                 target_id: target_id.id, 
                 target_type: skill_animation.target_type, 
-                unknown: skill_animation.animation_index, 
+                animation_index: skill_animation.animation_index, 
                 normal_damage: skill_animation.normal_damage, 
                 explosive_blow_damage: skill_animation.explosive_blow_damage, 
                 damage_type: skill_animation.damage_type, 

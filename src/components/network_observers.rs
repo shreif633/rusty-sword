@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Observers {
+pub struct NetworkObservers {
     pub entities: Vec<Entity>,
 }
 
-impl Observers {
+impl NetworkObservers {
     pub fn new() -> Self {
-        Observers { entities: vec![] }
+        NetworkObservers { entities: vec![] }
     }
 }

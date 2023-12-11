@@ -1,9 +1,9 @@
 use bevy::prelude::*;
+use crate::components::network_writer::NetworkWriter;
 use crate::responses::server_selected::ServerSelectedResponse;
 use crate::responses::check_hash::CheckHashResponse;
 use crate::responses::analyze::AnalyzeResponse;
 use crate::requests::server_select::ServerSelectRequest;
-use super::tcp_server::SocketWriter;
 
 pub struct ServerSelectPlugin;
 
@@ -13,7 +13,7 @@ impl Plugin for ServerSelectPlugin {
     }
 }
 
-fn handle_server_selection(mut commands: Commands, query: Query<(Entity, &SocketWriter), With<ServerSelectRequest>>) {
+fn handle_server_selection(mut commands: Commands, query: Query<(Entity, &NetworkWriter), With<ServerSelectRequest>>) {
     let analyze = AnalyzeResponse::new();
     let check_hash = CheckHashResponse::new();
     let server_selected = ServerSelectedResponse::new();

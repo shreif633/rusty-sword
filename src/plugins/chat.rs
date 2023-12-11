@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use crate::components::appearance::Appearance;
+use crate::components::network_writer::NetworkWriter;
 use crate::responses::chat_message::ChatMessageResponse;
 use crate::components::position::Position;
 use crate::requests::chat_message::ChatMessageRequest;
-use super::tcp_server::SocketWriter;
 
 pub struct ChatPlugin;
 
@@ -13,7 +13,7 @@ impl Plugin for ChatPlugin {
     }
 }
 
-fn handle_chat_message(mut commands: Commands, query: Query<(Entity, &ChatMessageRequest, &Position, &Appearance)>, players: Query<(&Position, &SocketWriter)>) {
+fn handle_chat_message(mut commands: Commands, query: Query<(Entity, &ChatMessageRequest, &Position, &Appearance)>, players: Query<(&Position, &NetworkWriter)>) {
     for (entity, client_packet, chatting_position, chatting_appearence) in &query {
         let chat_message = ChatMessageResponse { 
             character_name: chatting_appearence.name.clone(), 

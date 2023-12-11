@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::user::User;
 use crate::configs::player_starter::PlayerStarterConfigs;
 use crate::framework::database::Database;
@@ -13,7 +14,6 @@ use crate::requests::create_character::CreateCharacterRequest;
 use crate::requests::restore_deleted_character::RestoreDeletedCharacterRequest;
 use crate::requests::delete_character::DeleteCharacterRequest;
 use crate::requests::authenticate::AuthenticateRequest;
-use super::tcp_server::SocketWriter;
 
 pub struct CharacterSelectionPlugin;
 
@@ -26,7 +26,7 @@ impl Plugin for CharacterSelectionPlugin {
     }
 }
 
-pub fn authenticate(database: &Database, socket_writer: &SocketWriter, username: &str, password: &str) -> Option<UserRow> {
+pub fn authenticate(database: &Database, socket_writer: &NetworkWriter, username: &str, password: &str) -> Option<UserRow> {
     let user_row = find_user_by_username_and_password(database, username, password);
     if user_row.is_none() {
         let authentication_error = AuthenticationErrorResponse { error: Error::WrongPassword };
@@ -37,19 +37,19 @@ pub fn authenticate(database: &Database, socket_writer: &SocketWriter, username:
     user_row
 }
 
-pub fn list_characters(database: &Database, socket_writer: &SocketWriter, user_id: i32) {
+pub fn list_characters(database: &Database, socket_writer: &NetworkWriter, user_id: i32) {
     let players = find_all_user_players(database, user_id);
     let list_player_characters = ListPlayerCharactersResponse::new(&players);
     socket_writer.write(&mut (&list_player_characters).into());
 }
 
-fn list_deleted_characters(database: &Database, socket_writer: &SocketWriter, user_id: i32) {
+fn list_deleted_characters(database: &Database, socket_writer: &NetworkWriter, user_id: i32) {
     let players = find_all_deleted_user_players(database, user_id);
     let list_player_characters = ListPlayerDeletedCharactersResponse::new(&players);
     socket_writer.write(&mut (&list_player_characters).into());
 }
 
-fn handle_authentication(mut commands: Commands, query: Query<(Entity, &AuthenticateRequest, &SocketWriter)>, database: Res<Database>) {
+fn handle_authentication(mut commands: Commands, query: Query<(Entity, &AuthenticateRequest, &NetworkWriter)>, database: Res<Database>) {
     for (entity, client_packet, socket_writer) in &query {
         if let Some(user_row) = authenticate(&database, socket_writer, &client_packet.username, &client_packet.password) {
             commands.entity(entity).insert(User::from(&user_row));    
@@ -60,7 +60,7 @@ fn handle_authentication(mut commands: Commands, query: Query<(Entity, &Authenti
     }
 }
 
-fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, &DeleteCharacterRequest, &SocketWriter)>, database: Res<Database>) {
+fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, &DeleteCharacterRequest, &NetworkWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
         delete_user_player_by_id(&database, user.id, client_packet.character_id);
         list_characters(&database, socket_writer, user.id);
@@ -69,7 +69,7 @@ fn handle_delete_character(mut commands: Commands, query: Query<(Entity, &User, 
     }
 }
 
-fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity, &User, &RestoreDeletedCharacterRequest, &SocketWriter)>, database: Res<Database>) {
+fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity, &User, &RestoreDeletedCharacterRequest, &NetworkWriter)>, database: Res<Database>) {
     for (entity, user, client_packet, socket_writer) in &query {
         restore_user_player_by_id(&database, user.id, client_packet.character_id);
         list_characters(&database, socket_writer, user.id);
@@ -78,7 +78,7 @@ fn handle_restore_deleted_character(mut commands: Commands, query: Query<(Entity
     }
 }
 
-fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, &CreateCharacterRequest, &SocketWriter)>, database: Res<Database>, player_starter_config: Res<PlayerStarterConfigs>) {
+fn handle_create_character(mut commands: Commands, query: Query<(Entity, &User, &CreateCharacterRequest, &NetworkWriter)>, database: Res<Database>, player_starter_config: Res<PlayerStarterConfigs>) {
     for (entity, user, client_packet, socket_writer) in &query {
         let player_starter_config = player_starter_config.config.get(&client_packet.class).unwrap();
             if count_user_players(&database, user.id) >= 5 {

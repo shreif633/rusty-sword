@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::components::appearance::Appearance;
 use crate::components::id::Id;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::player::Player;
 use crate::components::position::Position;
 use crate::components::previous::Previous;
@@ -11,7 +12,6 @@ use crate::responses::player_appear::PlayerAppearResponse;
 use crate::responses::player_position::PlayerPositionResponse;
 use crate::requests::player_stop_walking::PlayerStopWalkingRequest;
 use crate::requests::player_walk::PlayerWalkRequest;
-use super::tcp_server::SocketWriter;
 
 pub struct PlayerMovementPlugin;
 
@@ -25,7 +25,7 @@ impl Plugin for PlayerMovementPlugin {
     }
 }
 
-fn handle_position_added(query: Query<(&Id, &Player, &Position, &Appearance, &SocketWriter), Added<Position>>) {
+fn handle_position_added(query: Query<(&Id, &Player, &Position, &Appearance, &NetworkWriter), Added<Position>>) {
     for (id, player, position, appearence, socket_writer) in &query {
         let player_position = PlayerPositionResponse { unknown: vec![47, 1], x: position.x, y: position.y };
         socket_writer.write(&mut (&player_position).into());
@@ -34,7 +34,7 @@ fn handle_position_added(query: Query<(&Id, &Player, &Position, &Appearance, &So
     }
 }
 
-fn handle_player_walking(mut commands: Commands, moved_query: Query<(Entity, &Id, &Position, &Walking), With<Player>>, players_query: Query<(&Id, &Position, &SocketWriter), With<Player>>) {
+fn handle_player_walking(mut commands: Commands, moved_query: Query<(Entity, &Id, &Position, &Walking), With<Player>>, players_query: Query<(&Id, &Position, &NetworkWriter), With<Player>>) {
     for (entity, walking_id, walking_position, walking) in &moved_query {
         for (id, position, socket_writer) in &players_query {
             if walking_id.id != id.id && position.is_in_sight(walking_position) {

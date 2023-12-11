@@ -2,11 +2,11 @@ use bevy::prelude::*;
 use std::time::Duration;
 use crate::components::current_magic_points::CurrentMagicPoints;
 use crate::components::id::Id;
-use crate::components::observers::Observers;
+use crate::components::network_writer::NetworkWriter;
+use crate::components::network_observers::NetworkObservers;
 use crate::components::speed::Speed;
 use crate::requests::skill_execute::SkillExecuteRequest;
 use crate::responses::general_state::GeneralStateResponse;
-use super::tcp_server::SocketWriter;
 
 const MANA_PER_TICK: u16 = 50;
 
@@ -52,7 +52,7 @@ fn consume_running_mana(mut commands: Commands, mut query: Query<(Entity, &mut C
     }
 }
 
-fn broadcast_speed_changed(mut players: Query<(&Id, &Speed, &Observers), Changed<Speed>>, observers: Query<&SocketWriter>) {
+fn broadcast_speed_changed(mut players: Query<(&Id, &Speed, &NetworkObservers), Changed<Speed>>, observers: Query<&NetworkWriter>) {
     for (id, speed, player_observers) in players.iter_mut() {
         let response = GeneralStateResponse { target_id: id.id, general_state: 0, speed: Some(speed.speed) };
         for entity in &player_observers.entities {

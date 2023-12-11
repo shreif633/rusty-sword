@@ -5,19 +5,19 @@ use crate::framework::packet::Packet;
 pub const HEADER: u8 = 63;
 
 #[derive(Debug)]
-pub struct SkillExecuteResponse {
+pub struct SkillAnimationResponse {
     pub skill_index: u8,
     pub player_id: i32,
     pub target_id: i32,
     pub target_type: TargetType,
-    pub unknown: u8,
+    pub animation_index: u8,
     pub normal_damage: Option<u16>,
     pub explosive_blow_damage: Option<u16>,
     pub damage_type: Option<DamageType>,
     pub soul_pocket_damage: Option<u16>
 }
 
-impl From<&mut Packet> for SkillExecuteResponse {
+impl From<&mut Packet> for SkillAnimationResponse {
     fn from(packet: &mut Packet) -> Self {
         let skill_index = packet.get_u8();
         let player_id = packet.get_i32();
@@ -42,15 +42,15 @@ impl From<&mut Packet> for SkillExecuteResponse {
             let soul_pocket_damage = packet.get_u16();
             (Some(normal_damage), Some(explosive_blow_damage), Some(damage_type), Some(soul_pocket_damage))
         };
-        SkillExecuteResponse { 
-            skill_index, player_id, target_id, target_type, unknown, 
+        SkillAnimationResponse { 
+            skill_index, player_id, target_id, target_type, animation_index: unknown, 
             normal_damage, explosive_blow_damage, damage_type, soul_pocket_damage 
         }
     }
 }
 
-impl From<&SkillExecuteResponse> for Packet {
-    fn from(val: &SkillExecuteResponse) -> Self {
+impl From<&SkillAnimationResponse> for Packet {
+    fn from(val: &SkillAnimationResponse) -> Self {
         let mut packet = Packet::from(HEADER);
         packet.write_u8(val.skill_index);
         packet.write_i32(val.player_id);
@@ -59,7 +59,7 @@ impl From<&SkillExecuteResponse> for Packet {
             TargetType::Player => packet.write_u8(0),
             TargetType::Monster => packet.write_u8(1) 
         };
-        packet.write_u8(val.unknown);
+        packet.write_u8(val.animation_index);
         if let Some(normal_damage) = val.normal_damage {
             packet.write_u16(normal_damage);
         }

@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use std::sync::{Mutex, Arc};
 use tokio::sync::mpsc::Sender;
-use crate::framework::packet::Packet;
 use crate::requests::ClientPacket;
+use crate::components::network_writer::NetworkWriter;
 use crate::requests::skill_execute::SkillExecuteRequest;
 use crate::requests::skill_prepare::SkillPrepareRequest;
 
@@ -36,27 +36,12 @@ pub enum SocketMessage {
     Disconnected,
 }
 
-#[derive(Debug, Component)]
-pub struct SocketWriter {
-    pub socket_writer: Sender<Vec<u8>>
-}
-
-impl SocketWriter {
-    pub fn write(&self, packet: &mut Packet) {
-        let rt = tokio::runtime::Builder::new_current_thread().build().unwrap();
-        let buffer = packet.serialize();
-        rt.block_on(async move {
-            self.socket_writer.send(buffer).await.unwrap();
-        });
-    }
-}
-
 fn process_socket_queue(mut commands: Commands, queue: ResMut<SocketQueue>, entities: Query<(Entity, &UserAddr)>) {
     let mut queue = queue.queue.lock().unwrap();
     queue.drain(0..).for_each(|connection_pair| {
         match connection_pair.1 {
             SocketMessage::Connected(socket_writer) => {
-                commands.spawn((SocketWriter { socket_writer }, UserAddr { socket_addr: connection_pair.0.clone() }));
+                commands.spawn((NetworkWriter { socket_writer }, UserAddr { socket_addr: connection_pair.0.clone() }));
             },
             SocketMessage::Packet(client_packet) => {
                 for (entity, user_addr) in &entities {

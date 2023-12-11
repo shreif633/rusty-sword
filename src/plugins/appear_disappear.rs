@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use crate::components::appearance::Appearance;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::npc::Npc;
-use crate::components::observers::Observers;
+use crate::components::network_observers::NetworkObservers;
 use crate::components::player::Player;
 use crate::responses::monster_disappear::MonsterDisappearResponse;
 use crate::components::id::Id;
@@ -14,7 +15,6 @@ use crate::components::maximum_health_points::MaximumHealthPoints;
 use crate::responses::npc_appear::NpcAppearResponse;
 use crate::responses::player_appear::PlayerAppearResponse;
 use crate::responses::player_disappear::PlayerDisappearResponse;
-use super::tcp_server::SocketWriter;
 
 pub struct AppearDisappearPlugin;
 
@@ -46,28 +46,31 @@ struct DisappearEvent {
     observer: Entity
 }
 
-fn update_observers_list(mut monsters: Query<(Entity, &mut Observers, &Position, Option<&Monster>, Option<&Player>)>, players: Query<(Entity, &Position), With<Player>>, mut appear_event: EventWriter<AppearEvent>, mut disappear_event: EventWriter<DisappearEvent>) {
+fn update_observers_list(
+    mut monsters: Query<(Entity, &mut NetworkObservers, &Position, Option<&Monster>, Option<&Player>)>, 
+    players: Query<(Entity, &Position), With<Player>>, 
+    mut appear_event: EventWriter<AppearEvent>, 
+    mut disappear_event: EventWriter<DisappearEvent>
+) {
     for (observer_entity, mut observers, observer_position, option_monster, option_player) in monsters.iter_mut() {
         let mut new_entities = Vec::<Entity>::new();
         for (player_entity, player_position) in players.iter() {
-            // if observer_entity != player_entity {
-                let entity_type = if let Some(_monster) = option_monster {
-                    EntityType::Monster(observer_entity)
-                } else if let Some(_player) = option_player {
-                    EntityType::Player(observer_entity)
-                } else {
-                    EntityType::Npc(observer_entity)
-                };
-                if observer_position.is_in_sight(player_position) {
-                    new_entities.push(player_entity);
-                    if !observers.entities.contains(&player_entity) {
-                        observers.entities.push(player_entity);
-                        appear_event.send(AppearEvent { entity: entity_type, observer: player_entity });
-                    }
-                } else if observers.entities.contains(&player_entity) {
-                    disappear_event.send(DisappearEvent { entity: entity_type, observer: player_entity });
+            let entity_type = if let Some(_monster) = option_monster {
+                EntityType::Monster(observer_entity)
+            } else if let Some(_player) = option_player {
+                EntityType::Player(observer_entity)
+            } else {
+                EntityType::Npc(observer_entity)
+            };
+            if observer_position.is_in_sight(player_position) {
+                new_entities.push(player_entity);
+                if !observers.entities.contains(&player_entity) {
+                    observers.entities.push(player_entity);
+                    appear_event.send(AppearEvent { entity: entity_type, observer: player_entity });
                 }
-            // }
+            } else if observers.entities.contains(&player_entity) {
+                disappear_event.send(DisappearEvent { entity: entity_type, observer: player_entity });
+            }
         }
         observers.entities = new_entities;
     }
@@ -78,7 +81,7 @@ fn broadcast_appear(
     monsters: Query<(&Id, &Monster, &Position, &CurrentHealthPoints, &MaximumHealthPoints)>, 
     npcs: Query<(&Id, &Npc, &Position, &Direction)>, 
     players: Query<(&Id, &Player, &Position, &Appearance)>,
-    observers: Query<&SocketWriter>
+    observers: Query<&NetworkWriter>
 ) {
     for event in appear_event.read() {
         if let Ok(socket_writer) = observers.get(event.observer) {
@@ -111,7 +114,7 @@ fn broadcast_disappear(
     monsters: Query<&Id, With<Monster>>, 
     players: Query<&Id, With<Player>>, 
     npcs: Query<&Id, With<Npc>>, 
-    observers: Query<&SocketWriter>
+    observers: Query<&NetworkWriter>
 ) {
     for event in appear_event.read() {
         if let Ok(socket_writer) = observers.get(event.observer) {

@@ -3,10 +3,10 @@ use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::current_magic_points::CurrentMagicPoints;
 use crate::components::maximum_health_points::MaximumHealthPoints;
 use crate::components::maximum_magic_points::MaximumMagicPoints;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::previous::Previous;
 use crate::responses::player_current_health_points::PlayerCurrentHealthPointsResponse;
 use crate::responses::player_current_magic_points::PlayerCurrentMagicPointsResponse;
-use super::tcp_server::SocketWriter;
 
 pub struct PlayerHealthPlugin;
 
@@ -27,7 +27,7 @@ fn limit_current_health_points(mut query: Query<(&mut CurrentHealthPoints, &Maxi
     }
 }
 
-fn broadcast_player_health(mut query: Query<(&mut Previous<CurrentHealthPoints>, &CurrentHealthPoints, &SocketWriter), Changed<CurrentHealthPoints>>) {
+fn broadcast_player_health(mut query: Query<(&mut Previous<CurrentHealthPoints>, &CurrentHealthPoints, &NetworkWriter), Changed<CurrentHealthPoints>>) {
     for (mut previous_health_points, current_health_points, socket_writer) in query.iter_mut() {
         previous_health_points.entity.current_health_points = current_health_points.current_health_points;
         let player_current_health_points_response = PlayerCurrentHealthPointsResponse { current_health_points: current_health_points.current_health_points };
@@ -43,7 +43,7 @@ fn limit_current_magic_points(mut query: Query<(&mut CurrentMagicPoints, &Maximu
     }
 }
 
-fn broadcast_player_magic(query: Query<(&CurrentMagicPoints, &SocketWriter), Changed<CurrentMagicPoints>>) {
+fn broadcast_player_magic(query: Query<(&CurrentMagicPoints, &NetworkWriter), Changed<CurrentMagicPoints>>) {
     for (current_magic_points, socket_writer) in query.iter() {
         let player_current_magic_points_response = PlayerCurrentMagicPointsResponse { current_magic_points: current_magic_points.current_magic_points };
         socket_writer.write(&mut (&player_current_magic_points_response).into());

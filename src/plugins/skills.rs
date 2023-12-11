@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use sqlx::query;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::player::Player;
 use crate::components::id::Id;
 use crate::responses::player_skills::PlayerSkillsResponse;
 use crate::framework::database::Database;
-use super::tcp_server::SocketWriter;
 
 pub struct SkillsPlugin;
 
@@ -44,7 +44,7 @@ fn query_player_skills(database: &Database, player_id: i32) -> Vec<Skill> {
     skills
 }
 
-fn load_skills(mut commands: Commands, query: Query<(Entity, &Id, &SocketWriter), (With<Player>, Without<Skills>)>, database: Res<Database>) {
+fn load_skills(mut commands: Commands, query: Query<(Entity, &Id, &NetworkWriter), (With<Player>, Without<Skills>)>, database: Res<Database>) {
     for (entity, id, socket_writer) in &query {
         let player_skills = query_player_skills(&database, id.id);
         let skills: Vec<crate::responses::player_skills::Skill> = player_skills.iter().map(|i| crate::responses::player_skills::Skill { 

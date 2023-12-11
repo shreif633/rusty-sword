@@ -5,11 +5,11 @@ use crate::components::dead::Dead;
 use crate::components::experience::Experience;
 use crate::components::experience_rate::ExperienceRate;
 use crate::components::level::Level;
+use crate::components::network_writer::NetworkWriter;
 use crate::components::player::Player;
 use crate::components::visual_effect::VisualEffect;
 use crate::responses::player_experience::PlayerExperienceResponse;
 use crate::responses::player_level::PlayerLevelResponse;
-use super::tcp_server::SocketWriter;
 
 pub struct LevelPlugin;
 
@@ -23,7 +23,7 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn distribute_experience(mut query: Query<(&mut Aggro, &Experience, &Level), (Added<Dead>, Without<Player>)>, mut players: Query<(&mut Experience, &ExperienceRate, &Level, &SocketWriter), With<Player>>) {
+fn distribute_experience(mut query: Query<(&mut Aggro, &Experience, &Level), (Added<Dead>, Without<Player>)>, mut players: Query<(&mut Experience, &ExperienceRate, &Level, &NetworkWriter), With<Player>>) {
     for (mut aggro, target_experience, target_level) in query.iter_mut() {
         let total_aggro: u32 = aggro.list.values().sum();
         for (entity, points) in &aggro.list {
@@ -60,7 +60,7 @@ fn update_admin_level(mut query: Query<(&mut Level, &Experience), (Changed<Exper
     }
 }
 
-fn broadcast_new_level(query: Query<(&Level, &SocketWriter), Changed<Level>>) {
+fn broadcast_new_level(query: Query<(&Level, &NetworkWriter), Changed<Level>>) {
     for (level, socket_writer) in &query {
         let player_level_response = PlayerLevelResponse { level: level.level };
         socket_writer.write(&mut (&player_level_response).into());

@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use crate::components::id::Id;
-use crate::components::observers::Observers;
+use crate::components::network_writer::NetworkWriter;
+use crate::components::network_observers::NetworkObservers;
 use crate::responses::visual_effect::VisualEffectResponse;
 use crate::enums::target_type::TargetType;
 use crate::components::visual_effect::VisualEffect;
-use super::tcp_server::SocketWriter;
 
 pub struct VisualEffectPlugin;
 
@@ -14,7 +14,7 @@ impl Plugin for VisualEffectPlugin {
     }
 }
 
-fn show_visual_effects(mut commands: Commands, query: Query<(Entity, &Id, &VisualEffect, &Observers)>, observers: Query<&SocketWriter>) {
+fn show_visual_effects(mut commands: Commands, query: Query<(Entity, &Id, &VisualEffect, &NetworkObservers)>, observers: Query<&NetworkWriter>) {
     for (entity, id, visual_effect, target_observers) in &query {
         let visual_effect_response = VisualEffectResponse::new(id.id, TargetType::Player, &visual_effect.visual_effect);
         for entity in &target_observers.entities {
