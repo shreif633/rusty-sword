@@ -26,6 +26,7 @@ pub mod maximum_magic_points;
 pub mod medicine;
 pub mod monster;
 pub mod network_writer;
+pub mod normal_hit_animation;
 pub mod npc;
 pub mod network_observers;
 pub mod physical_attack;

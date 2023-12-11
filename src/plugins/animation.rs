@@ -3,8 +3,10 @@ use crate::components::animation::Animation;
 use crate::components::network_writer::NetworkWriter;
 use crate::components::network_observers::NetworkObservers;
 use crate::components::id::Id;
+use crate::components::normal_hit_animation::NormalHitAnimation;
 use crate::components::skill_animation::SkillAnimation;
 use crate::responses::animation::AnimationResponse;
+use crate::responses::normal_hit_damage::NormalHitDamageResponse;
 use crate::responses::skill_animation::SkillAnimationResponse;
 
 pub struct AnimationPlugin;
@@ -13,6 +15,7 @@ impl Plugin for AnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Last, broadcast_animation);
         app.add_systems(Last, broadcast_skill_animation);
+        app.add_systems(Last, broadcast_normal_hit_animation);
     }
 }
 
@@ -73,5 +76,31 @@ fn broadcast_skill_animation(
             }
         }
         commands.entity(entity).remove::<SkillAnimation>();
+    }
+}
+
+fn broadcast_normal_hit_animation(
+    mut commands: Commands, 
+    players: Query<(Entity, &Id, &NormalHitAnimation, &NetworkObservers)>, 
+    targets: Query<&Id>, 
+    observers: Query<&NetworkWriter>
+) {
+     for (entity, id, skill_animation, player_observers) in &players {
+        if let Ok(target_id) = targets.get(skill_animation.target) {
+            let skill_animation_response = NormalHitDamageResponse { 
+                attacker_id: id.id, 
+                target_id: target_id.id, 
+                normal_damage: skill_animation.normal_damage, 
+                explosive_blow_damage: skill_animation.explosive_blow_damage, 
+                damage_type: skill_animation.damage_type, 
+                soul_pocket_damage: skill_animation.soul_pocket_damage
+            };
+            for entity in &player_observers.entities {
+                if let Ok(observer_socket_writer) = observers.get(*entity) {
+                    observer_socket_writer.write(&mut (&skill_animation_response).into());
+                }
+            }
+        }
+        commands.entity(entity).remove::<NormalHitAnimation>();
     }
 }

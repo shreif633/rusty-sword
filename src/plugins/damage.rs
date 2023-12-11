@@ -2,13 +2,10 @@ use bevy::prelude::*;
 use crate::components::aggro::Aggro;
 use crate::components::current_health_points::CurrentHealthPoints;
 use crate::components::damage::Damage;
-use crate::components::id::Id;
-use crate::components::network_writer::NetworkWriter;
-use crate::components::network_observers::NetworkObservers;
+use crate::components::normal_hit_animation::NormalHitAnimation;
 use crate::components::skill_animation::SkillAnimation;
 use crate::enums::damage_type::DamageType;
 use crate::enums::target_type::TargetType;
-use crate::responses::normal_hit_damage::NormalHitDamageResponse;
 
 pub struct DamagePlugin;
 
@@ -45,37 +42,16 @@ fn calculate_aggro(damages: Query<&Damage, Added<Damage>>, mut targets: Query<&m
     }
 }
 
-fn add_damage_animation(
-    mut commands: Commands, 
-    damages: Query<&Damage, Added<Damage>>, 
-    targets: Query<(&Id, &NetworkObservers)>, 
-    attackers: Query<&Id>, 
-    observers: Query<&NetworkWriter>
-) {
+fn add_damage_animation(mut commands: Commands, damages: Query<&Damage, Added<Damage>>) {
     for damage in damages.iter() {
-        if let Ok((target_id, target_observers)) = targets.get(damage.target) {
-            if let Ok(attacker_id) = attackers.get(damage.source) {
-                if let Some(animation) = damage.animation {
-                    if let Some(skill_index) = damage.skill_index {
-                        let skill_animation = SkillAnimation::with_damage(skill_index, damage.target, TargetType::Monster, animation, damage.damage as u16, 0, DamageType::Normal, 0);
-                        commands.entity(damage.source).insert(skill_animation);
-                    }   
-                } else {
-                    let normal_hit_damage_response = NormalHitDamageResponse {
-                        attacker_id: attacker_id.id,
-                        target_id: target_id.id,
-                        normal_damage: damage.damage,
-                        explosive_blow_damage: 0,
-                        damage_type: DamageType::Normal,
-                        soul_pocket_damage: 0,
-                    };
-                    for entity in &target_observers.entities {
-                        if let Ok(observer_socket_writer) = observers.get(*entity) {
-                            observer_socket_writer.write(&mut (&normal_hit_damage_response).into());
-                        }
-                    }
-                }
-            }
+        if let Some(animation) = damage.animation {
+            if let Some(skill_index) = damage.skill_index {
+                let skill_animation = SkillAnimation::with_damage(skill_index, damage.target, TargetType::Monster, animation, damage.damage as u16, 0, DamageType::Normal, 0);
+                commands.entity(damage.source).insert(skill_animation);
+            }   
+        } else {
+            let normal_hit_animation = NormalHitAnimation::new(damage.target, damage.damage, 0, DamageType::Normal, 0);
+            commands.entity(damage.source).insert(normal_hit_animation);
         }
     }
 }
