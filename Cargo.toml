@@ -9,7 +9,7 @@ edition = "2021"
 bevy = "0.12.0"
 clap = { version = "4.4.8", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.6.2", features = ["runtime-tokio-native-tls", "sqlite", "chrono"] }
+sqlx = { version = "0.6.2", features = ["runtime-tokio-native-tls", "sqlite", "chrono", "macros"] }
 futures = "0.3.29"
 pwhash = "1.0.0"
 dotenvy = "0.15.7"
